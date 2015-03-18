@@ -17,9 +17,10 @@ import java.util.*;
  */
 public class Board {
     static final int BOARD_DEPTH = 400;
+    static final int FIRST_SPIKE_LEVEL = 4;  // level at which we first see spikes
     static final int MAX_COLS = 40; // max conceivable number of columns
     private static final int BASE_EX_FIRE_BPS = 35;  // bps chance per tick that we fire an ex at player
-    private static final int NUMSCREENS = 6;
+    public static final int NUMSCREENS = 6;  // number of different screen layouts
 
     private int levnum;
     private int exesct;
@@ -52,11 +53,11 @@ public class Board {
         int x, y, oldx=0, oldy=0;
         exesct = 5 + levnum*2;
         exesCanMove = (levnum != 1);
-        if (levnum < 4)
+        if (levnum < FIRST_SPIKE_LEVEL)
             spikespct = (float)0;
-        else if (levnum < 6)
+        else if (levnum < FIRST_SPIKE_LEVEL +1)
             spikespct = (float) 0.5;
-        else if (levnum < 9)
+        else if (levnum < FIRST_SPIKE_LEVEL*2)
             spikespct = (float) 0.75;
         else spikespct = (float) 1;
         float rad_dist;
@@ -189,7 +190,8 @@ public class Board {
                     oldx = x;
                     oldy = y;
                 }
-                for (; x <= cx*7/4; x+= cx*2/3/(ncols/2), y-=(cy*2.5)/(ncols)){
+                int diffx = x - cx; // we may have a remainder, and on some screen sizes this may screw up rendering
+                for (; x <= cx*7/4 + diffx; x+= cx*2/3/(ncols/2), y-=(cy*2.5)/(ncols)){
                     Column col = new Column(oldx, oldy, x, y);
                     columns.add(col);
                     oldx = x;

@@ -1,4 +1,4 @@
-package com.bulsy.wbtempest;
+ package com.bulsy.wbtempest;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -13,11 +13,12 @@ import java.util.Random;
  *
  */
 public class Spike {
-	private static int IMPACT_DAMAGE_LENGTH = 15;
-	static int SPIKE_SCORE = 2;
-	static double SPINNER_SPIN_SPEED = .3;
-	static int SPINNER_SPEED = 3;
-	static int SPINNER_SCORE = 50;
+	private static final int IMPACT_DAMAGE_LENGTH = 14;
+    private static final int MAXLENGTH = Board.BOARD_DEPTH - Crawler.CHEIGHT*2;
+	static final int SPIKE_SCORE = 2;
+	static final double SPINNER_SPIN_SPEED = 18;  // rads/sec
+	static final int SPINNER_SPEED = 180; // pix/sec
+	static final int SPINNER_SCORE = 50;
 	private static Random r = new Random(new java.util.Date().getTime());
 	private int length;
 	private int colnum;
@@ -32,7 +33,7 @@ public class Spike {
 
 	private void init(int colnum) {
 		this.colnum = colnum;
-		length = r.nextInt(Board.BOARD_DEPTH *3/4)+Board.BOARD_DEPTH /10;
+		length = Board.BOARD_DEPTH /20;
 		spinnerz = Board.BOARD_DEPTH - r.nextInt(length);
 		spinnerangle = r.nextDouble();
 		visible = true;
@@ -78,18 +79,20 @@ public class Spike {
 		return spinnerz;
 	}
 
-	public void move() {
-		spinnerz += spinnerDir * SPINNER_SPEED;
-		spinnerangle += SPINNER_SPIN_SPEED;
+	public void move(float elapsedTime) {
+		spinnerz += spinnerDir * elapsedTime * SPINNER_SPEED;
+		spinnerangle += elapsedTime * SPINNER_SPIN_SPEED;
 		if (spinnerz > Board.BOARD_DEPTH){
 			spinnerz = Board.BOARD_DEPTH;
 			spinnerDir = -1; // go up
 		}
 		else if (spinnerz < Board.BOARD_DEPTH - length) {
 			// we're at top of spike; grow spike or flip dir
-			if (length < Board.BOARD_DEPTH - Crawler.CHEIGHT*2
-					&& r.nextInt(2) > 0) {
-				length+= IMPACT_DAMAGE_LENGTH;
+			if (length < MAXLENGTH
+					&& r.nextInt(100) > 59) {
+				length+= (int)((3.0f*r.nextFloat())*IMPACT_DAMAGE_LENGTH);
+                if (length > MAXLENGTH)
+                    length = MAXLENGTH;
 			}
 			else
 				spinnerDir = 1; // go down
@@ -106,8 +109,8 @@ public class Spike {
 	}
 	
 	public List<int[]> getSpinnerCoords(Board lev){
-		int nCoords = 16;
-		int[][] coords=new int[nCoords][3];
+		int nPoints = 13; // how many points to plot per spinner
+		int[][] coords=new int[nPoints][3];
 		Column c = lev.getColumns().get(colnum);
 		int[] p1 = c.getFrontPoint1();
 		int[] p2 = c.getFrontPoint2();
@@ -118,14 +121,14 @@ public class Spike {
 		int origRadius = colWidth/3;
 		int radius = origRadius;
 		float rad_dist = (float) (3.1415927 * 2)*3;
-		float step = rad_dist/(nCoords);
+		float step = rad_dist/(nPoints);
 		int ct = 0;
-		for (double rads=spinnerangle; ct < nCoords; rads+=step, ct++)
+		for (double rads=spinnerangle; ct < nPoints; rads+=step, ct++)
 		{
 			coords[ct][0] = mp[0] - (int)(Math.sin(rads) * radius * .85);
 			coords[ct][1] = mp[1] - (int)(Math.cos(rads) * radius);
 			coords[ct][2] = spinnerz;
-			radius = origRadius *ct/nCoords; 
+			radius = origRadius *ct/nPoints;
 		}
     	return Arrays.asList(coords);
 	}

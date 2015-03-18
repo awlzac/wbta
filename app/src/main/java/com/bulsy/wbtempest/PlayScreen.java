@@ -15,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,14 +30,15 @@ public class PlayScreen extends Screen {
     private static final String HISCORE_FILENAME = "wbt.hi";
     private static Random r = new Random(new java.util.Date().getTime());
     static final int START_LIVES = 3;
-    private static final int SPEED_LEV_ADVANCE = 310;  // speed at which we fly to the next board after clearing a level
+    private static final int SPEED_LEV_ADVANCE = 300;  // speed at which we fly to the next board after clearing a level
     private static final int GAME_OVER_BOARDSPEED = 2300;  // speed at which the game recedes when player loses
     static final long ONESEC_NANOS = 1000000000L;
     private static final long DEATH_PAUSE_NANOS = ONESEC_NANOS*2/3;  // time to pause on crawler death
     private static final long SUPERZAPPER_NANOS = ONESEC_NANOS/3; // how long does a superzap last?
-    private static final long FIRE_COOLDOWN_NANOS = ONESEC_NANOS / 20; // max firing rate, per sec
+    private static final long FIRE_COOLDOWN_NANOS = ONESEC_NANOS / 30; // max firing rate, per sec
     private static final int NUM_STARS = 100; // number of stars when entering a level
-    private static final int MAX_VEL = 1000;
+    private static final int MAX_VEL = 2000; // spin-controlling at this pace is "fast"
+    private static final int INIT_LEVELPREP_POV = Board.BOARD_DEPTH * 2;  // start level-intro zoom from this distance
 
     private Crawler crawler;
     private ArrayList<Ex> exes;
@@ -151,6 +151,7 @@ public class PlayScreen extends Screen {
 
         }
         superzaps = 1;  // superzapper recharges at start of every level
+        fireSuperzapper = false;
 
         //also do whatever we need when replaying a level
         replayLevel();
@@ -170,9 +171,10 @@ public class PlayScreen extends Screen {
             exes.add(Ex.getNewEx(r.nextInt(board.getColumns().size()),
                     r.nextBoolean(),
                     board));
-            exes.get(0).resetZ(board.BOARD_DEPTH *5/4);
         }
-        else {
+        if (exes.size() == 1)
+            exes.get(0).resetZ(board.BOARD_DEPTH *3/2);
+        else { // reposition all the exes in the center spawning area
             for (Ex ex : exes )
                 ex.resetZ(r.nextInt(board.BOARD_DEPTH *2 + board.BOARD_DEPTH * board.getNumExes()/5) + board.BOARD_DEPTH *5/4);
         }
@@ -224,14 +226,25 @@ public class PlayScreen extends Screen {
 
         if (starList == null) {
             // set up stars for inter-level flow
+            int xadj, yadj, fieldlen;
+            if (v.getHeight() > v.getWidth()) {
+                fieldlen = v.getHeight();
+                yadj = 0;
+                xadj = -(v.getHeight()-v.getWidth()) / 2;
+            }
+            else {
+                fieldlen = v.getWidth();
+                xadj = 0;
+                yadj = -(v.getWidth()-v.getHeight()) / 2;
+            }
+
             starList = new ArrayList<int[]>();
             for (int i=0; i< NUM_STARS; i++){
-                // this is awkward, but we'd like to use the existing plotting method, which expects a
-                // List for each thing to be drawn, connecting dots -- in this case, a point.
                 int[] starcoords = new int[3];
-                starcoords[0] = r.nextInt(v.getWidth());
-                starcoords[1] = r.nextInt(v.getHeight());
-                starcoords[2] = -r.nextInt(board.BOARD_DEPTH);
+
+                starcoords[0] = r.nextInt(fieldlen) + xadj;
+                starcoords[1] = r.nextInt(fieldlen) + yadj;
+                starcoords[2] = -r.nextInt(INIT_LEVELPREP_POV / 2); // concentrate stars close-ish to playing board
                 starList.add(starcoords);
             }
         }
@@ -271,7 +284,7 @@ public class PlayScreen extends Screen {
                 {
                     levelnum++;
                     initLevel(v);
-                    boardpov = -board.BOARD_DEPTH * 2;
+                    boardpov = -INIT_LEVELPREP_POV;
                     levelprep=true;
                 }
             }
@@ -335,7 +348,7 @@ public class PlayScreen extends Screen {
                 for (Spike s : spikes) {
                     if (s.isVisible()) {
                         if (s.isSpinnerVisible()) {
-                            s.move();
+                            s.move(elapsedTime);
                             if ((s.getSpinnerZ() < board.BOARD_DEPTH)
                                     && (r.nextInt(10000) < board.getExFireBPS()/4))
                             { // with 1/4 the frequency of an ex, this spinner fires a missile
@@ -415,19 +428,15 @@ public class PlayScreen extends Screen {
 
                 if (boardpov < -Crawler.CHEIGHT) {
                     // pov shows game level board in the distance; add stars for fun
-                    int idx = 0;
-                    for (int[] s : starList) {
-//                        ZMagic.drawObject(c, color, s, board, boardpov);
-                        xycoords = ZMagic.renderFromZ(s[0], s[1], s[2]-boardpov, board);
-                        starpts[idx]=xycoords[0];
-                        starpts[idx+1]=xycoords[1];
-                        idx += 2;
-                    }
-                    starpaint.setStrokeCap(Paint.Cap.ROUND);
-                    starpaint.setStrokeWidth(1);
-//                    starpaint.setARGB(255, r.nextInt(255),r.nextInt(255),r.nextInt(255));
                     starpaint.setColor(Color.BLUE);
-                    c.drawPoints(starpts, starpaint);
+                    starpaint.setStrokeCap(Paint.Cap.ROUND);
+                    starpaint.setStrokeWidth(2);
+                    for (int[] s : starList) {
+                        xycoords = ZMagic.renderFromZ(s[0], s[1], s[2]-boardpov, board);
+                        if (levelnum > Board.NUMSCREENS)
+                            starpaint.setARGB(255, r.nextInt(255),r.nextInt(255),r.nextInt(255));
+                        c.drawPoint(xycoords[0], xycoords[1], starpaint);
+                    }
                 }
 
                 // draw crawler's missiles
@@ -495,7 +504,7 @@ public class PlayScreen extends Screen {
             c.drawText(Integer.toString(lives), v.getWidth()-40, 30, p);
 
 //            // onscreen dbg info
-            c.drawText(info, 50, 150, p);
+//            c.drawText(info, 50, 150, p);
             c.drawText("fps:"+fps, 50, 100, p);
 
             // draw fire buttons
@@ -520,6 +529,12 @@ public class PlayScreen extends Screen {
                 p.setTextSize(TS_NORMAL);
                 p.setColor(Color.BLUE);
                 drawCenteredText(c, "SUPERZAPPER RECHARGE", v.getHeight() *2/3, p, 0);
+            }
+
+            if (levelcleared && levelnum == Board.FIRST_SPIKE_LEVEL) {
+                p.setTextSize(TS_NORMAL);
+                p.setColor(Color.WHITE);
+                drawCenteredText(c, "AVOID  SPIKES", v.getHeight()/2, p, 0);
             }
 
 
@@ -572,11 +587,11 @@ public class PlayScreen extends Screen {
         else {
             // check ex/player
             for (Ex ex : exes) {
-                if ((ex.getColumn() == cCol) && (ex.getZ() < Ex.HEIGHT)) {
+                if (ex.isVisible() && (ex.getColumn() == cCol) && (ex.getZ() < Crawler.CHEIGHT)) {
                     //Log.d(act.LOG_ID, "ex got crawler:"+ex);
                     playerDeath();
                     ex.resetState();
-                    break;
+                    return;  // we died...round is over, no need to continue checking any other collisions
                 }
             }
 
@@ -596,7 +611,7 @@ public class PlayScreen extends Screen {
         // while not really a collision, the superzapper acts more or less like a
         // collision with all on-board non-pod exes, so it goes here.
         if (frtime < superzapperOverTime) {
-            int perTickKill = (int)(exes.size()/10 * SUPERZAPPER_NANOS/ONESEC_NANOS); // assume worst frame rate 10
+            int perTickKill = (int)(exes.size()/(10 * SUPERZAPPER_NANOS/ONESEC_NANOS)); // assume worst frame rate 10
             for (Ex ex : exes){
                 int kills = 0;
                 if (ex.isVisible() && ex.getZ() < board.BOARD_DEPTH && !ex.isPod()) {
@@ -616,15 +631,12 @@ public class PlayScreen extends Screen {
             Ex newEx = null; // if this missile hits a pod, we may spawn a new ex
             for (Ex ex : exes) {
                 // check for normal missile/ex collision, also ex adjacent to crawler
-                //if (ex.getZ() < 3* Ex.HEIGHT && crawler.getMissiles().lastIndexOf(m) == crawler.getMissiles().size()-1) {
-                //    Log.d(act.LOG_ID, "ex at z:"+ex.getZ()+ ", col "+ex.getColumn()+",  crawler at "+crawler.getColumn()+" m at :"+m.getZPos() + " "+m+" ex:"+ex);
-                //}
                 if (m.isVisible()
                         && (m.getColumn() == ex.getColumn() && (Math.abs(m.getZPos() - ex.getZ())< Ex.HEIGHT))
                         || ((m.getColumn() == crawler.getColumn())
-                        && (m.getZPos() < Crawler.CHEIGHT*2)
+                        && (m.getZPos() <= Missile.HEIGHT) // if we JUST fired the missile and ex is adjacent...
                         && (ex.getZ() <= 0)
-                        //&& (r.nextInt(10) < 9)  // 90% success rate for hitting adjacent exes
+                        && (!ex.isJumping())
                         && (((ex.getColumn() +1)%ncols == crawler.getColumn())
                         || ((crawler.getColumn()+1)%ncols == ex.getColumn())))){
                     //Log.d(act.LOG_ID, "ex hit,  m:"+m.getZPos() + " "+m+" ex:"+ex);
@@ -633,7 +645,7 @@ public class PlayScreen extends Screen {
                         score += Ex.PODSCOREVAL;
                         m.setVisible(false);
                         ex.setPod(false);
-                        newEx = ex.spawn();
+                        newEx = ex.spawn(true);
                         act.playSound(Sound.ENEMYDEATH);
                         break;
                     }
@@ -698,8 +710,8 @@ public class PlayScreen extends Screen {
     }
 
     VelocityTracker mVelocityTracker = null;
-    DisplayMetrics dm = new DisplayMetrics();
-    List<Integer> firePtrList = new LinkedList<Integer>();
+    List<Integer> mvmtPrtList = new LinkedList<Integer>();
+    List<Integer> fireList = new LinkedList<Integer>();
     @Override
     public boolean onTouch(MotionEvent e) {
         switch (e.getActionMasked()) {
@@ -712,20 +724,21 @@ public class PlayScreen extends Screen {
                 int idx = e.getActionIndex();
                 int pid = e.getPointerId(idx);
                 if (e.getY(idx) > buttonLimitLine) {
-                    Log.d(act.LOG_ID, "BTN DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
+                    //Log.d(act.LOG_ID, "BTN DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
                     if (btnFire1Bounds.contains((int)e.getX(idx), (int)e.getY(idx)) || btnFire2Bounds.contains((int)e.getX(idx), (int)e.getY(idx))) {
                         // fire!
+                        fireList.add(pid);
                         fireMissile = true;
-                        firePtrList.add(pid);
                     }
                     else if (btnSuperzapBounds.contains((int)e.getX(idx), (int)e.getY(idx))) {
                         // superzap
                         fireSuperzapper = true;
-                        return false; // no followups
+                        return false; // no followups...though...we might get them anyway if this isn;t the original pointer.   this really seems overcomplicated.
                     }
                 }
                 else {
-                    Log.d(act.LOG_ID, "DIAL DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
+                    mvmtPrtList.add(pid);
+                    //Log.d(act.LOG_ID, "DIAL DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
                     if (mVelocityTracker == null) {
                         // Retrieve a new VelocityTracker object to watch the velocity of a motion.
                         mVelocityTracker = VelocityTracker.obtain();
@@ -743,8 +756,8 @@ public class PlayScreen extends Screen {
             case MotionEvent.ACTION_MOVE:
                 for (int i = 0; i < e.getPointerCount(); i++) {
                     pid = e.getPointerId(i);
-                    if (!firePtrList.contains(pid)) {
-                        Log.d(act.LOG_ID, "MOVE, not firing; pid " + pid);
+                    if (mvmtPrtList.contains(pid)) {
+                        //Log.d(act.LOG_ID, "MOVE, dial; pid " + pid);
                         mVelocityTracker.addMovement(e);
 
                         // come up with magnitude of portion of movement vector in same direction
@@ -762,32 +775,37 @@ public class PlayScreen extends Screen {
                             float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
                             float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
                             double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
-                            double veldir = Math.atan(tvy / tvx);
-                            if (tvx < 0)
-                                veldir += Math.PI;
-                            double alignedComponentFactor = Math.cos(veldir - posnormdir);
-                            crawler.accel(alignedComponentFactor * velmag / MAX_VEL);
-                            info = String.format("veld:%.2f\tposnd:%.2f\tvelmag:%d",
-                                    (float) veldir, (float) posnormdir, (int) velmag);
+                            if (tvx != 0) { // skip those brief instants where computation gets ruined
+                                double veldir = Math.atan(tvy / tvx);
+                                if (tvx < 0)
+                                    veldir += Math.PI;
+                                double alignedComponentFactor = Math.cos(veldir - posnormdir);
+                                double fact = alignedComponentFactor * velmag / MAX_VEL;
+                                crawler.accel(alignedComponentFactor * velmag / MAX_VEL);
+                                info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
+                                        (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
+                            }
                         }
                     }
                 }
-                if (crawler.getColumn() == 0)
-                    pid=5;
                 break;
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
-                int fidx = firePtrList.lastIndexOf(e.getPointerId(e.getActionIndex()));
-                if (fidx > -1) {
-                    firePtrList.remove(fidx);
-                    fireMissile = false;
-                }
-                else
-                {
+                int lidx = mvmtPrtList.lastIndexOf(e.getPointerId(e.getActionIndex()));
+                if (lidx > -1) {
+                    mvmtPrtList.remove(lidx);
                     crawler.stop();
                     info = "stopped by release";
                     mVelocityTracker.recycle();
+                }
+                else
+                { // was a button press
+                    lidx = fireList.lastIndexOf(e.getPointerId(e.getActionIndex()));
+                    if (lidx > -1) {
+                        fireList.remove(lidx);
+                        fireMissile = false;
+                    }
                 }
                 break;
 

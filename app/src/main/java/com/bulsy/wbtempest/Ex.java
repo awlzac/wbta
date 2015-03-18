@@ -27,18 +27,20 @@ public class Ex {
     // possible states of an ex
 	private static enum State {STRAIGHT, JUMPRIGHT1, JUMPLEFT1, JUMPRIGHT2, JUMPLEFT2, LANDRIGHT1, LANDRIGHT2, LANDLEFT1, LANDLEFT2};
 
-	private static int INIT_JUMPINTERVAL = 25;  // ticks
-	private static int JUMPINTERVAL_FLYING = 2;  // ticks, while ex is still flying in the center
+	private static long INIT_JUMPINTERVAL = (long)(PlayScreen.ONESEC_NANOS*2/3);
+    private static float BOARD_TOP_SPEEDUP_FACTOR = 0.7f;
+	private static long JUMPINTERVAL_FLYING = (long)(PlayScreen.ONESEC_NANOS/15);  //while ex is still flying in the center
 	private static double INIT_SPEED = 65;
     private int col;
     private boolean isPod = false;
     private double z = Board.BOARD_DEPTH;
     private boolean visible;
-    private int jumptimer = 0;
     private State prefdir = State.JUMPRIGHT1;  // initial predisp to jump right
     private State s = prefdir;
     private boolean spawning = true;
-    private int jumpInterval;
+    private long jumpInterval;
+    private long nextJumpTime;
+    private long currJumpStarted;
     private Board board;
     private static List<Ex> usedExes = new LinkedList<Ex>(); // recycle exes
 
@@ -57,9 +59,7 @@ public class Ex {
         this.isPod = isPod;
         visible = true;
         this.board = board;
-        jumpInterval = INIT_JUMPINTERVAL - board.getLevelNumber()/2;
-        if (jumpInterval < 10)
-            jumpInterval = 10;
+        jumpInterval = INIT_JUMPINTERVAL - (PlayScreen.ONESEC_NANOS * board.getLevelNumber()/100);
     }
 
     public static Ex getNewEx(int col, boolean isPod, Board board) {
@@ -70,7 +70,7 @@ public class Ex {
         else
             ex = new Ex();
         ex.init(col, isPod, board);
-        Log.d("wbt", "usedExes has "+usedExes.size());
+        //Log.d("wbt", "usedExes has "+usedExes.size());
         return ex;
     }
 
@@ -95,13 +95,23 @@ public class Ex {
      * Spawns an additional ex, traveling in the opposite direction.
      */
     public Ex spawn() {
+        return spawn(false);
+    }
+    public Ex spawn(boolean moveColumn){
         Ex spawn = Ex.getNewEx(col, false, board);
-    	spawn.z = z;
-    	if (prefdir == State.JUMPLEFT1)
-    		spawn.prefdir = State.JUMPRIGHT1;
-    	else
-    		spawn.prefdir = State.JUMPLEFT1;
-    	return spawn;
+        spawn.z = z;
+        if (prefdir == State.JUMPLEFT1)
+            spawn.prefdir = State.JUMPRIGHT1;
+        else
+            spawn.prefdir = State.JUMPLEFT1;
+        if (moveColumn) {
+            // step around the continuous issue
+            if (col == 0)
+                col++;
+            else
+                col--;
+        }
+        return spawn;
     }
 
     /**
@@ -120,13 +130,14 @@ public class Ex {
         	z -= INIT_SPEED * elapsedTime/2; // go faster when they're just spinning aimlessly before hitting the board.
 
         int ncols = board.getColumns().size();
+        long now = System.nanoTime();
         switch (s) {
         case STRAIGHT:
         	if ((board.exesCanMove() && !isPod) || z <= 0 || z > Board.BOARD_DEPTH){
         		// if exes are allowed to move column to column, or if we're already at 
         		// the front of the board, move every now and then.
-        		jumptimer--;
-        		if (jumptimer <= 0) {
+        		if (now >= nextJumpTime) {
+                    currJumpStarted = now;
         				if (z < Board.BOARD_DEPTH && spawning)
         				{ // haven't chosen a direction yet
         					spawning = false;
@@ -201,16 +212,21 @@ public class Ex {
         case LANDRIGHT2:
         case LANDLEFT2:
             if (z < Board.BOARD_DEPTH) {
-            	jumptimer = jumpInterval;
-                if (z <= 0) {
-                    jumptimer = (int)(.6 * jumpInterval);
+            	nextJumpTime = jumpInterval;
+                if (z <= 0) { // ex is already at top - speed it up.
+                    nextJumpTime = (long)(BOARD_TOP_SPEEDUP_FACTOR * nextJumpTime);
                 }
+                nextJumpTime += currJumpStarted;
             }
         	else {   // ex is still flying
-        		jumptimer = JUMPINTERVAL_FLYING;
+        		nextJumpTime = currJumpStarted + JUMPINTERVAL_FLYING;
         	}
         	s = State.STRAIGHT;
         }
+    }
+
+    public boolean isJumping() {
+        return !(s == State.STRAIGHT);
     }
 
     public boolean isVisible() {

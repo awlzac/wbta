@@ -12,10 +12,10 @@ import java.util.List;
  *
  */
 public class Missile {
-	private static int BASE_SPEED = 500;
-	static int HEIGHT = 8;
-	private static int HEIGHT_H = HEIGHT/2;
-    private static int ENEMY_MISSILE_SPEED_FACTOR = 3;
+	private static final int BASE_SPEED = 500;
+	static final int HEIGHT = 8;
+	private static final int HEIGHT_H = HEIGHT/2;
+    private static final int ENEMY_MISSILE_SPEED_FACTOR = 3;
 	private int colnum;
 	private int zpos;
 	private boolean visible;

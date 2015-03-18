@@ -21,8 +21,8 @@ public class Crawler {
     private static final int CHEIGHT_HP = (int) (CHEIGHT * 0.6);  // slightly more than half
     private static final int MAX_MISSILES = 6;
     private MainActivity act;
-    private double vpos;
-    private double pos;
+    private double vpos=0;
+    private double pos=0;
     private boolean visible;
     private ArrayList<Missile> missiles;
     private Board board;
@@ -87,6 +87,8 @@ public class Crawler {
         int colnum = getColumn();
         int pose = (int)pos % C_POSES / 2; // each pose here is doubled for more manageable movement
 
+        if (colnum >= board.getColumns().size())
+            pose = board.getColumns().size() * C_POSES - 1;
         Column column = board.getColumns().get(colnum);
         int[] pt1 = column.getFrontPoint1();
         int[] pt2 = column.getFrontPoint2();
@@ -166,7 +168,9 @@ public class Crawler {
         return visible;
     }
 
-    public void accel(double factor) {vpos = -factor * SPEED;}
+    public void accel(double factor) {
+        vpos = -factor * SPEED;
+    }
 
     public void accelRight(){
     	vpos = SPEED;
