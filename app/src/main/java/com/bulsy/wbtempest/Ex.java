@@ -30,7 +30,7 @@ public class Ex {
 	private static long INIT_JUMPINTERVAL = (long)(PlayScreen.ONESEC_NANOS*2/3);
     private static float BOARD_TOP_SPEEDUP_FACTOR = 0.7f;
 	private static long JUMPINTERVAL_FLYING = (long)(PlayScreen.ONESEC_NANOS/15);  //while ex is still flying in the center
-	private static double INIT_SPEED = 65;
+	private static double INIT_SPEED = 70;
     private int col;
     private boolean isPod = false;
     private double z = Board.BOARD_DEPTH;
@@ -78,6 +78,19 @@ public class Ex {
         usedExes.add(ex);
     }
 
+    /**
+     * return the number of exes actually on the playing board, not just in the spawn area.
+     * @param exes  a list of exes, to filter
+     * @return
+     */
+    public static int exesOnBoard(List<Ex> exes) {
+        int obx = 0;
+        for (Ex ex : exes) {
+            if (ex.getZ() < Board.BOARD_DEPTH)
+                obx++;
+        }
+        return obx;
+    }
 
     public void resetZ(int zdepth) {
     	z = zdepth;
@@ -121,9 +134,9 @@ public class Ex {
      * @param crawlerCol
      * @param elapsedTime
      */
-    public void move(int xbound, int crawlerCol, float elapsedTime) {
+    public void move(int level, int crawlerCol, float elapsedTime) {
         if (z > 0)
-            z -= INIT_SPEED * elapsedTime;
+            z -= (INIT_SPEED + level) * elapsedTime;
         if (z < 0)
             z = 0;
         if (z > Board.BOARD_DEPTH)

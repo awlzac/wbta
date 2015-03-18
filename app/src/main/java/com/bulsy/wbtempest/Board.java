@@ -19,8 +19,8 @@ public class Board {
     static final int BOARD_DEPTH = 400;
     static final int FIRST_SPIKE_LEVEL = 4;  // level at which we first see spikes
     static final int MAX_COLS = 40; // max conceivable number of columns
-    private static final int BASE_EX_FIRE_BPS = 35;  // bps chance per tick that we fire an ex at player
-    public static final int NUMSCREENS = 6;  // number of different screen layouts
+    private static final int BASE_EX_FIRE_BPS = 2000;  // bps chance per sec that an ex fires at player
+    public static final int NUMSCREENS = 10;  // number of different screen layouts
 
     private int levnum;
     private int exesct;
@@ -51,7 +51,7 @@ public class Board {
         continuous = false;
         boolean firsttime = true;
         int x, y, oldx=0, oldy=0;
-        exesct = 5 + levnum*2;
+        exesct = 6 + (int)(1.5*levnum);
         exesCanMove = (levnum != 1);
         if (levnum < FIRST_SPIKE_LEVEL)
             spikespct = (float)0;
@@ -131,7 +131,65 @@ public class Board {
                 }
                 break;
 
-            case 2: // triangle
+            case 2: // plus
+            case 4:
+                continuous = true;
+                int colwidth = v.getWidth()/6;
+                zpull_x=cx;
+                zpull_y= cy+(int)(colwidth*0.8);
+                x = oldx = cx-colwidth;
+                y = oldy = cy - colwidth;
+                x-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                y+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                x+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                x+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                x+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                x+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                y-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                x-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                x-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                x-= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                y+= colwidth;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldy = y;
+                break;
+
+            case 3: // triangle
                 continuous = true;
                 //radius = 320;
                 ncols = 15;
@@ -174,7 +232,7 @@ public class Board {
                 }
                 break;
 
-            case 3: // straight, angled V
+            case 5: // straight, angled V
                 ncols = 16;
                 // need a different z-pull for a board using this screen
                 zpull_x = v.getWidth()/2;
@@ -199,31 +257,13 @@ public class Board {
                 }
                 break;
 
-            case 4: // straight line
-                ncols = 14;
-                // need a different z-pull for a board using this screen
-                zpull_x = v.getWidth()/2;
-                zpull_y = v.getHeight() /4;
-                y = v.getHeight() * 5/7;
-                for (x = v.getWidth() *1/(ncols+2); x < v.getWidth() * (1+ncols)/(ncols+2); x+= v.getWidth()/(ncols+2)){
-                    if (firsttime){
-                        firsttime = false;
-                    }
-                    else {
-                        Column col = new Column(oldx, oldy, x, y);
-                        columns.add(col);
-                    }
-                    oldx = x;
-                    oldy = y;
-
-                }
-                break;
-
-            case 5: // jagged V
+            case 6: // jagged V
+            case 8:
                 zpull_x = v.getWidth()/2;
                 zpull_y = v.getHeight() /5;
-                int ycolwidth = 90;
-                int xcolwidth = ycolwidth *4/5;
+                int total_cols = 15;  // must be ODD
+                int xcolwidth = (int) Math.floor(v.getWidth()/(total_cols/2 - 1)); // should be enough
+                int ycolwidth = xcolwidth * 5/4;
                 int ystart;
                 x = oldx = cx - (int)(xcolwidth*3.5);
                 y = oldy = ystart = cy - ycolwidth;
@@ -246,6 +286,28 @@ public class Board {
                     columns.add(new Column(oldx, oldy, x, y));
                     oldy=y;
                 }
+
+            case 7: // straight line
+            case 9:
+                ncols = 14;
+                // need a different z-pull for a board using this screen
+                zpull_x = v.getWidth()/2;
+                zpull_y = v.getHeight() /4;
+                y = v.getHeight() * 5/7;
+                for (x = v.getWidth() *1/(ncols+1); x < v.getWidth() * (1+ncols)/(ncols+2); x+= v.getWidth()/(ncols+2)){
+                    if (firsttime){
+                        firsttime = false;
+                    }
+                    else {
+                        Column col = new Column(oldx, oldy, x, y);
+                        columns.add(col);
+                    }
+                    oldx = x;
+                    oldy = y;
+
+                }
+                break;
+
         }
     }
 
@@ -254,7 +316,7 @@ public class Board {
     }
 
     public int getLevelColor(){
-        if (levnum > NUMSCREENS *2)
+        if (levnum > NUMSCREENS)
             return Color.RED;
         return Color.BLUE;
     }
@@ -281,8 +343,12 @@ public class Board {
         return this.exesct;
     }
 
-    public int getExFireBPS(){
-        return BASE_EX_FIRE_BPS + levnum/2;
+    /**
+     * bps chance per second that we will fire
+     * @return
+     */
+    public int getExFireBPS(float elapsedTime){
+        return (int)(elapsedTime * (BASE_EX_FIRE_BPS + levnum*15));
     }
 
     public int getNumSpikes(){

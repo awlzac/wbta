@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.v4.view.VelocityTrackerCompat;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -16,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -66,6 +66,7 @@ public class PlayScreen extends Screen {
     private volatile boolean fireSuperzapper = false;
     private long superzapperOverTime = 0;  // time at which the zap color display will end
     private int superzaps = 1;  // how many superzaps does the player have available?
+    private int nZapKillsPerTick;
     private boolean crawlerSpiked;
     private List<int[]> starList = null;  // will be created and populated first time around
     int[] xycoords = new int[2];
@@ -173,10 +174,10 @@ public class PlayScreen extends Screen {
                     board));
         }
         if (exes.size() == 1)
-            exes.get(0).resetZ(board.BOARD_DEPTH *3/2);
+            exes.get(0).resetZ((int)(board.BOARD_DEPTH *3.0f/2.0f));
         else { // reposition all the exes in the center spawning area
             for (Ex ex : exes )
-                ex.resetZ(r.nextInt(board.BOARD_DEPTH *2 + board.BOARD_DEPTH * board.getNumExes()/5) + board.BOARD_DEPTH *5/4);
+                ex.resetZ((int)(r.nextInt((int)(board.BOARD_DEPTH * (2.0f+exes.size()/3.0f))) + board.BOARD_DEPTH * 5.0f/4.0f));
         }
     }
 
@@ -213,10 +214,10 @@ public class PlayScreen extends Screen {
 
         if (btnFire1Bounds == null) {
             // init button locs
-            buttonLimitLine = v.getHeight() *4/5;
+            buttonLimitLine = (int)(v.getHeight() *4.0f/5.0f);
             int spacer = 10;
-            int x_sep1 = v.getWidth() *2/5;
-            int x_sep2 = v.getWidth() *3/5;
+            int x_sep1 = (int)(v.getWidth() *2.0f/5.0f);
+            int x_sep2 = (int)(v.getWidth() *3.0f/5.0f);
             btnFire1Bounds = new Rect(spacer, buttonLimitLine, x_sep1 - spacer/2, v.getHeight()-spacer);
             btnSuperzapBounds = new Rect(x_sep1 +spacer/2, buttonLimitLine, x_sep2 - spacer/2, v.getHeight()-spacer);
             btnFire2Bounds = new Rect(x_sep2+spacer/2, buttonLimitLine, v.getWidth()-spacer, v.getHeight()-spacer);
@@ -244,7 +245,7 @@ public class PlayScreen extends Screen {
 
                 starcoords[0] = r.nextInt(fieldlen) + xadj;
                 starcoords[1] = r.nextInt(fieldlen) + yadj;
-                starcoords[2] = -r.nextInt(INIT_LEVELPREP_POV / 2); // concentrate stars close-ish to playing board
+                starcoords[2] = -r.nextInt(INIT_LEVELPREP_POV * 2 / 3); // concentrate stars close-ish to playing board
                 starList.add(starcoords);
             }
         }
@@ -254,6 +255,9 @@ public class PlayScreen extends Screen {
             if (fireSuperzapper && superzaps > 0){
                 superzapperOverTime = frtime + SUPERZAPPER_NANOS;
                 fireSuperzapper = false;
+                // compute appx how many exes to kill per tick, for a staggered "most-of-them" kill effect
+                // assume worstcase fps of half of current, and assume half the exes on board can spawn
+                nZapKillsPerTick = (int)(Ex.exesOnBoard(exes)*1.5/(fps/2 * SUPERZAPPER_NANOS/ONESEC_NANOS));
                 superzaps--;
             }
             crawler.move(crawlerzoffset, elapsedTime);
@@ -276,9 +280,11 @@ public class PlayScreen extends Screen {
             else if (levelcleared)
             {   // player passed level.
                 // pull board out towards screen until player leaves far end of board.
-                boardpov += elapsedTime * SPEED_LEV_ADVANCE;
+                float incr = elapsedTime * SPEED_LEV_ADVANCE;
+                //incr = 1+ (incr * 2 *((float)boardpov + incr)/board.BOARD_DEPTH);  // speed should increase as we go
+                boardpov += incr;
                 if (crawlerzoffset < board.BOARD_DEPTH)
-                    crawlerzoffset+= elapsedTime * SPEED_LEV_ADVANCE;
+                    crawlerzoffset+= incr;
 
                 if (boardpov > board.BOARD_DEPTH * 5/4)
                 {
@@ -288,22 +294,23 @@ public class PlayScreen extends Screen {
                     levelprep=true;
                 }
             }
-            else if (lives > 0)
-            {   // player died but not out of lives.
-                // pause, then suck crawler down and restart level
-                if (frtime >= deathPauseTime) {
+            else if (frtime >= deathPauseTime) {
+                if (lives > 0) {
+                    // player died but not out of lives.
+                    // suck crawler down and restart level
                     crawlerzoffset += elapsedTime * SPEED_LEV_ADVANCE * 2;  // twice as fast as level adv
                     if (crawlerzoffset > board.BOARD_DEPTH)
                         replayLevel();
+                } else {
+                    // player died and game is over.
+                    // advance everything along z away from player.
+                    if (boardpov > -board.BOARD_DEPTH * 5)
+                        boardpov -= elapsedTime * GAME_OVER_BOARDSPEED;
+                    else
+                        gameover = true;
                 }
             }
-            else
-            { // player died and game is over.  advance everything along z away from player.
-                if (boardpov > -board.BOARD_DEPTH *5)
-                    boardpov -= elapsedTime * GAME_OVER_BOARDSPEED;
-                else
-                    gameover=true;
-            }
+            // ...otherwise, we died and are waiting for death pause to pass
         }
 
         if (lives > 0)
@@ -325,7 +332,7 @@ public class PlayScreen extends Screen {
                     Ex ex = (Ex) exes.get(i);
                     if (ex.isVisible())
                     {
-                        ex.move(v.getWidth(), crawler.getColumn(), elapsedTime);
+                        ex.move(levelnum, crawler.getColumn(), elapsedTime);
                         if (ex.getZ() <= 0) {
                             if (ex.isPod()) {
                                 // we're at the top of the board; split the pod
@@ -334,7 +341,7 @@ public class PlayScreen extends Screen {
                             }
                         }
                         if ((ex.getZ() < board.BOARD_DEPTH)
-                                && (r.nextInt(10000) < board.getExFireBPS()))
+                                && (r.nextInt(10000) < board.getExFireBPS(elapsedTime)))
                         { // this ex fires a missile
                             enemymissiles.add(Missile.getNewMissile(ex.getColumn(), ex.getZ(), false));
                             act.playSound(Sound.ENEMYFIRE);
@@ -350,7 +357,7 @@ public class PlayScreen extends Screen {
                         if (s.isSpinnerVisible()) {
                             s.move(elapsedTime);
                             if ((s.getSpinnerZ() < board.BOARD_DEPTH)
-                                    && (r.nextInt(10000) < board.getExFireBPS()/4))
+                                    && (r.nextInt(10000) < board.getExFireBPS(elapsedTime)/4))
                             { // with 1/4 the frequency of an ex, this spinner fires a missile
                                 enemymissiles.add(Missile.getNewMissile(s.getColumn(), s.getSpinnerZ(), false));
                                 act.playSound(Sound.ENEMYFIRE);
@@ -534,7 +541,7 @@ public class PlayScreen extends Screen {
             if (levelcleared && levelnum == Board.FIRST_SPIKE_LEVEL) {
                 p.setTextSize(TS_NORMAL);
                 p.setColor(Color.WHITE);
-                drawCenteredText(c, "AVOID  SPIKES", v.getHeight()/2, p, 0);
+                drawCenteredText(c, "AVOID  SPIKES", v.getHeight() / 2, p, 0);
             }
 
 
@@ -611,14 +618,25 @@ public class PlayScreen extends Screen {
         // while not really a collision, the superzapper acts more or less like a
         // collision with all on-board non-pod exes, so it goes here.
         if (frtime < superzapperOverTime) {
-            int perTickKill = (int)(exes.size()/(10 * SUPERZAPPER_NANOS/ONESEC_NANOS)); // assume worst frame rate 10
-            for (Ex ex : exes){
+            // loop through exes old school style, in case we have to add a spawn and don't
+            // want a concurrentmodificationexception
+            for (int ix = 0; ix < exes.size(); ix++){
+                Ex ex = exes.get(ix);
                 int kills = 0;
-                if (ex.isVisible() && ex.getZ() < board.BOARD_DEPTH && !ex.isPod()) {
-                    ex.setVisible(false);
-                    act.playSound(Sound.ENEMYDEATH);
-                    kills++;
-                    if (kills >= perTickKill)
+                if (ex.isVisible() && ex.getZ() < board.BOARD_DEPTH){
+                    if (!ex.isPod()) {
+                        // normal ex.  kill it.
+                        ex.setVisible(false);
+                        act.playSound(Sound.ENEMYDEATH);
+                        kills++;
+                    }
+                    else {
+                        // pod.  split it like normal.
+                        ex.setPod(false);
+                        exes.add(ex.spawn());
+                        //don't count against kills
+                    }
+                    if (kills >= nZapKillsPerTick)
                         break;  // each tick, kill a few, for a slight stagger effect
                 }
             }
