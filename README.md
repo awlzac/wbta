@@ -5,7 +5,8 @@ wbt
 
 a tempest (80's arcade game) clone/homage.
 
-playable, and fairly true to the original, though of course not identical.
+playable, and fairly true to the original, has many of the screens, though of course not identical.
+
 
 <strong>game summary</strong> for those not familiar with tempest:<br/>
 the player (you) has a crawler, with which you must maneuver around the front of the current level and destroy the enemies coming forward towards you, out of the center of the screen.  the enemies are:<br/>
@@ -15,11 +16,11 @@ the player (you) has a crawler, with which you must maneuver around the front of
 <li>spikes: columns sometimes have spikes, which will destroy you if you hit them when clearing a level.  spikes also have spinners which fire missiles at you.  the spinner will grow the length of the spike, so it's best to kill them.</li>
 </ul>
 
-you also have a "superzapper", which is a special weapon that instantly destroys all exes (except for pods) that are on the board. 
+you also have a "superzapper", which is a special weapon that instantly destroys all exes that are on the board. this zap can be used once per round. 
 
 controls:<br/>
-arrow keys to move, spacebar to fire, and "S" to superzap.  "P" to pause game.
+circular touch motion on the game board controls your crawler, and "fire" and "zap" buttons to fire and zap.
 
 built using android studio.
 
-this was ported to android from wbtempest, (standard java).
+this was ported to android (and expanded) from wbtempest, (standard java).

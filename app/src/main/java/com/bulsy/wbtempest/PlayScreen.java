@@ -30,7 +30,7 @@ public class PlayScreen extends Screen {
     private static final String HISCORE_FILENAME = "wbt.hi";
     private static Random r = new Random(new java.util.Date().getTime());
     static final int START_LIVES = 3;
-    private static final int SPEED_LEV_ADVANCE = 300;  // speed at which we fly to the next board after clearing a level
+    private static final int SPEED_LEV_ADVANCE = 280;  // speed at which we fly to the next board after clearing a level
     private static final int GAME_OVER_BOARDSPEED = 2300;  // speed at which the game recedes when player loses
     static final long ONESEC_NANOS = 1000000000L;
     private static final long DEATH_PAUSE_NANOS = ONESEC_NANOS*2/3;  // time to pause on crawler death
@@ -281,7 +281,11 @@ public class PlayScreen extends Screen {
             {   // player passed level.
                 // pull board out towards screen until player leaves far end of board.
                 float incr = elapsedTime * SPEED_LEV_ADVANCE;
-                //incr = 1+ (incr * 2 *((float)boardpov + incr)/board.BOARD_DEPTH);  // speed should increase as we go
+                // speed should increase as we go
+                float grad = ((float)boardpov + incr)/(board.BOARD_DEPTH/2);
+                if (grad < 1)
+                    grad = 1;
+                incr = incr * grad;
                 boardpov += incr;
                 if (crawlerzoffset < board.BOARD_DEPTH)
                     crawlerzoffset+= incr;
@@ -437,11 +441,18 @@ public class PlayScreen extends Screen {
                     // pov shows game level board in the distance; add stars for fun
                     starpaint.setColor(Color.BLUE);
                     starpaint.setStrokeCap(Paint.Cap.ROUND);
-                    starpaint.setStrokeWidth(2);
                     for (int[] s : starList) {
-                        xycoords = ZMagic.renderFromZ(s[0], s[1], s[2]-boardpov, board);
+                        int zdist = s[2] - boardpov;
+                        xycoords = ZMagic.renderFromZ(s[0], s[1], zdist, board);
                         if (levelnum > Board.NUMSCREENS)
                             starpaint.setARGB(255, r.nextInt(255),r.nextInt(255),r.nextInt(255));
+                        if (zdist < 200)
+                            starpaint.setStrokeWidth(5);
+                        else if (zdist < 500)
+                            starpaint.setStrokeWidth(4);
+                        else
+                            starpaint.setStrokeWidth(2);
+
                         c.drawPoint(xycoords[0], xycoords[1], starpaint);
                     }
                 }
@@ -652,11 +663,14 @@ public class PlayScreen extends Screen {
                 if (m.isVisible()
                         && (m.getColumn() == ex.getColumn() && (Math.abs(m.getZPos() - ex.getZ())< Ex.HEIGHT))
                         || ((m.getColumn() == crawler.getColumn())
-                        && (m.getZPos() <= Missile.HEIGHT) // if we JUST fired the missile and ex is adjacent...
-                        && (ex.getZ() <= 0)
-                        && (!ex.isJumping())
-                        && (((ex.getColumn() +1)%ncols == crawler.getColumn())
-                        || ((crawler.getColumn()+1)%ncols == ex.getColumn())))){
+                            && (m.getZPos() <= Missile.HEIGHT) // if we JUST fired the missile and ex is adjacent...
+                            && (ex.getZ() <= 0)
+                            && (!ex.isJumping())
+                            && ( // adjacent fire depends on if the screen is continuous
+                                (((ex.getColumn() +1) == crawler.getColumn()) || ((crawler.getColumn()+1) == ex.getColumn())) ||
+                                ((((ex.getColumn() +1)%ncols == crawler.getColumn()) || ((crawler.getColumn()+1)%ncols == ex.getColumn())) && board.isContinuous())
+                               )
+                           )){
                     //Log.d(act.LOG_ID, "ex hit,  m:"+m.getZPos() + " "+m+" ex:"+ex);
                     if (ex.isPod()) {
                         // this ex is a pod; split into normal exes

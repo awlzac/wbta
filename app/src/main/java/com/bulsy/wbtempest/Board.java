@@ -20,7 +20,7 @@ public class Board {
     static final int FIRST_SPIKE_LEVEL = 4;  // level at which we first see spikes
     static final int MAX_COLS = 40; // max conceivable number of columns
     private static final int BASE_EX_FIRE_BPS = 2000;  // bps chance per sec that an ex fires at player
-    public static final int NUMSCREENS = 10;  // number of different screen layouts
+    public static final int NUMSCREENS = 8;  // number of different screen layouts
 
     private int levnum;
     private int exesct;
@@ -50,7 +50,7 @@ public class Board {
 
         continuous = false;
         boolean firsttime = true;
-        int x, y, oldx=0, oldy=0;
+        int x=0, y=0, oldx=0, oldy=0;
         exesct = 6 + (int)(1.5*levnum);
         exesCanMove = (levnum != 1);
         if (levnum < FIRST_SPIKE_LEVEL)
@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        //screennum=5;
+        //screennum=3;
 
         switch (screennum) {
             case 0:	// circle
@@ -132,7 +132,6 @@ public class Board {
                 break;
 
             case 2: // plus
-            case 4:
                 continuous = true;
                 int colwidth = v.getWidth()/6;
                 zpull_x=cx;
@@ -189,7 +188,49 @@ public class Board {
                 oldy = y;
                 break;
 
-            case 3: // triangle
+            case 3: // infinitything
+                ncols = 8;
+                zpull_y = cy*41/40;
+                continuous = true;
+                rad_dist = (float) (Math.PI * 2);
+                step = rad_dist/(ncols);
+                int origx=0;
+                int cxc = (int)((float)cx * .45);
+                radius = (int)((cx - cxc)*0.81f);
+                for (float rads=-1.5f*step; rads < rad_dist-step*1.5; rads+=step)
+                {
+                    x = cxc - (int)(Math.sin(rads) * radius * .95);
+                    y = cy - (int)(Math.cos(rads) * radius);
+                    if (firsttime){
+                        firsttime = false;
+                        origx = x;
+                    }
+                    else {
+                        Column col = new Column(oldx, oldy, x, y);
+                        columns.add(col);
+                    }
+                    oldx = x;
+                    oldy = y;
+                }
+                cxc = (int)((float)cx * 1.55);
+                for (float rads=+2.5f*step; rads < rad_dist+1.5*step; rads+=step)
+                {
+                    x = cxc - (int)(Math.sin(rads) * radius * .95);
+                    y = cy - (int)(Math.cos(rads) * radius);
+                    if (firsttime){
+                        firsttime = false;
+                    }
+                    else {
+                        Column col = new Column(oldx, oldy, x, y);
+                        columns.add(col);
+                    }
+                    oldx = x;
+                    oldy = y;
+                }
+                columns.add(new Column(oldx, oldy, origx, y));
+                break;
+
+            case 4: // triangle
                 continuous = true;
                 //radius = 320;
                 ncols = 15;
@@ -258,7 +299,6 @@ public class Board {
                 break;
 
             case 6: // jagged V
-            case 8:
                 zpull_x = v.getWidth()/2;
                 zpull_y = v.getHeight() /5;
                 int total_cols = 15;  // must be ODD
@@ -286,9 +326,9 @@ public class Board {
                     columns.add(new Column(oldx, oldy, x, y));
                     oldy=y;
                 }
+                break;
 
             case 7: // straight line
-            case 9:
                 ncols = 14;
                 // need a different z-pull for a board using this screen
                 zpull_x = v.getWidth()/2;
