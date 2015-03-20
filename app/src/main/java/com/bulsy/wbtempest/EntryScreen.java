@@ -67,12 +67,12 @@ public class EntryScreen extends Screen {
 
         p.setTypeface(act.getGameFont());
         p.setColor(Color.GREEN);  // dark greenish
-        p.setTextSize(30);
-        String txt = "WANNABE";
-        c.drawText(txt, v.getWidth()/2-p.measureText(txt), height/4, p);
         p.setTextSize(100);
-        txt = "TEMPEST";
+        String txt = "WBT";
         c.drawText(txt, (v.getWidth()-p.measureText(txt))/2, height/3, p);
+        //p.setTextSize(30);
+        //txt = "WANNABE TEMPEST";
+        //c.drawText(txt, v.getWidth()/2-p.measureText(txt), height/4, p);
 
         p.setTextSize(60);
         if (playBtnBounds == null) {

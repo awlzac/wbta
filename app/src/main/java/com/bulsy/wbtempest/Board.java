@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        //screennum=3;
+//        screennum=6;
 
         switch (screennum) {
             case 0:	// circle
@@ -133,7 +133,7 @@ public class Board {
 
             case 2: // plus
                 continuous = true;
-                int colwidth = v.getWidth()/6;
+                int colwidth = v.getWidth()/5;
                 zpull_x=cx;
                 zpull_y= cy+(int)(colwidth*0.8);
                 x = oldx = cx-colwidth;
@@ -302,7 +302,7 @@ public class Board {
                 zpull_x = v.getWidth()/2;
                 zpull_y = v.getHeight() /5;
                 int total_cols = 15;  // must be ODD
-                int xcolwidth = (int) Math.floor(v.getWidth()/(total_cols/2 - 1)); // should be enough
+                int xcolwidth = (int) Math.floor(v.getWidth()/(total_cols/2 + 1)); // should be enough
                 int ycolwidth = xcolwidth * 5/4;
                 int ystart;
                 x = oldx = cx - (int)(xcolwidth*3.5);
@@ -333,7 +333,7 @@ public class Board {
                 // need a different z-pull for a board using this screen
                 zpull_x = v.getWidth()/2;
                 zpull_y = v.getHeight() /4;
-                y = v.getHeight() * 5/7;
+                y = v.getHeight() * 4/7;
                 for (x = v.getWidth() *1/(ncols+1); x < v.getWidth() * (1+ncols)/(ncols+2); x+= v.getWidth()/(ncols+2)){
                     if (firsttime){
                         firsttime = false;

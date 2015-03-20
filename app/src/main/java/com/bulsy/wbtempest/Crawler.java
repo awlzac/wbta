@@ -1,7 +1,5 @@
 package com.bulsy.wbtempest;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,13 +13,13 @@ import java.util.List;
 public class Crawler {
 
 	private static final int C_POSES = 6;
-	private static final double SPEED = 130;
+	private static final double MAXSPEED = 200;
     static final int CHEIGHT = 10;
     private static final int CHEIGHT_H = CHEIGHT/2; // half height
     private static final int CHEIGHT_HP = (int) (CHEIGHT * 0.6);  // slightly more than half
     private static final int MAX_MISSILES = 6;
     private MainActivity act;
-    private double vpos=0;
+    private double vel =0;
     private double pos=0;
     private boolean visible;
     private ArrayList<Missile> missiles;
@@ -46,7 +44,7 @@ public class Crawler {
      */
     public void move(int crawleroffset, float elapsedTime) {
     	int prevCol = getColumn();
-        pos += vpos * elapsedTime;
+        pos += vel * elapsedTime;
 
         if (board.isContinuous()){
         	pos %= pos_max;
@@ -168,32 +166,38 @@ public class Crawler {
         return visible;
     }
 
-    public void accel(double factor) {
-        vpos = -factor * SPEED;
+    public void accel(double factor)
+    {
+        vel = -factor * MAXSPEED;
+        if (vel > MAXSPEED)
+            vel = MAXSPEED;
+        else if (vel < -MAXSPEED)
+            vel = -MAXSPEED;
     }
 
     public void accelRight(){
-    	vpos = SPEED;
+    	vel = MAXSPEED;
     }
 
     public void accelLeft(){
-    	vpos = -SPEED;
+    	vel = -MAXSPEED;
     }
 
-    public void stop() {vpos = 0;}
+    public void stop() {
+        vel = 0;}
+
     /**
      * fire a missile.
      * @param zoffset - z pos of crawler (if clearing level, crawler will be traveling into board)
      */
     public void fire(int zoffset) {
         if (missiles.size() < MAX_MISSILES) {
-            //if (missiles.size() == 0
-            //        || missiles.get(missiles.size()-1).getZPos() > Missile.HEIGHT*3) {
             Missile m = Missile.getNewMissile(this.getColumn(), Missile.HEIGHT/3+zoffset, true);
             missiles.add(m);
-            //Log.d(act.LOG_ID, "firing missile "+m+", at "+m.getZPos());
-            act.playSound(Sound.FIRE);
-            //}
+
+            // at bottom of board, sound goes haywire
+            if (zoffset < Board.BOARD_DEPTH)
+                act.playSound(Sound.FIRE);
         }
     }
 

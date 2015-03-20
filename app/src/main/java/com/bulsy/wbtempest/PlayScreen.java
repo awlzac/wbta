@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.v4.view.VelocityTrackerCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -30,14 +31,14 @@ public class PlayScreen extends Screen {
     private static final String HISCORE_FILENAME = "wbt.hi";
     private static Random r = new Random(new java.util.Date().getTime());
     static final int START_LIVES = 3;
-    private static final int SPEED_LEV_ADVANCE = 280;  // speed at which we fly to the next board after clearing a level
+    private static final int SPEED_LEV_ADVANCE = 265;  // speed at which we fly to the next board after clearing a level
     private static final int GAME_OVER_BOARDSPEED = 2300;  // speed at which the game recedes when player loses
     static final long ONESEC_NANOS = 1000000000L;
     private static final long DEATH_PAUSE_NANOS = ONESEC_NANOS*2/3;  // time to pause on crawler death
     private static final long SUPERZAPPER_NANOS = ONESEC_NANOS/3; // how long does a superzap last?
     private static final long FIRE_COOLDOWN_NANOS = ONESEC_NANOS / 30; // max firing rate, per sec
     private static final int NUM_STARS = 100; // number of stars when entering a level
-    private static final int MAX_VEL = 2000; // spin-controlling at this pace is "fast"
+    private static final int MAX_VEL = 2500; // spin-controlling at this pace is "fast"
     private static final int INIT_LEVELPREP_POV = Board.BOARD_DEPTH * 2;  // start level-intro zoom from this distance
 
     private Crawler crawler;
@@ -512,7 +513,7 @@ public class PlayScreen extends Screen {
             p.setTypeface(act.getGameFont());
             p.setTextSize(TS_BIG);
 //		g2d.drawString("SCORE:", 5, 15);
-            c.drawText(Integer.toString(score), 100, 55, p);
+            c.drawText(Integer.toString(score), 50, 55, p);
             if (score > hiscore)
                 hiscore = score;
             p.setTextSize(TS_NORMAL);
@@ -523,7 +524,7 @@ public class PlayScreen extends Screen {
 
 //            // onscreen dbg info
 //            c.drawText(info, 50, 150, p);
-            c.drawText("fps:"+fps, 50, 100, p);
+//            c.drawText("fps:"+fps, 50, 100, p);
 
             // draw fire buttons
             p.setARGB(255, 170, 0, 0);
@@ -744,6 +745,7 @@ public class PlayScreen extends Screen {
     VelocityTracker mVelocityTracker = null;
     List<Integer> mvmtPrtList = new LinkedList<Integer>();
     List<Integer> fireList = new LinkedList<Integer>();
+    DisplayMetrics dm = new DisplayMetrics();
     @Override
     public boolean onTouch(MotionEvent e) {
         switch (e.getActionMasked()) {
@@ -806,17 +808,27 @@ public class PlayScreen extends Screen {
                             mVelocityTracker.computeCurrentVelocity(1000);
                             float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
                             float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
-                            double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
-                            if (tvx != 0) { // skip those brief instants where computation gets ruined
+
+//                            if (tvx != 0) { // skip those instants where computation gets ruined
+//                                // attempt to scale speed for device size and display density
+//                                act.getWindowManager().getDefaultDisplay().getMetrics(dm);
+//                                int dpi = dm.densityDpi;
+//                                float speedfactor = dpi / 280f;  // game constants were tuned on a device with appx this density, so if current density s different, we should scale
+//                                tvx = tvx / speedfactor;
+//                                tvy = tvy / speedfactor;
+
+                                if (tvx == 0)
+                                    tvx = 0.001f;
+                                double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
                                 double veldir = Math.atan(tvy / tvx);
                                 if (tvx < 0)
                                     veldir += Math.PI;
                                 double alignedComponentFactor = Math.cos(veldir - posnormdir);
                                 double fact = alignedComponentFactor * velmag / MAX_VEL;
-                                crawler.accel(alignedComponentFactor * velmag / MAX_VEL);
+                                crawler.accel(fact);
                                 info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
                                         (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
-                            }
+  //                          }
                         }
                     }
                 }
