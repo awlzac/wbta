@@ -8,6 +8,7 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -21,14 +22,18 @@ import java.util.Map;
 
 public class MainActivity extends ActionBarActivity {
     static final String LOG_ID = "wbt";
+    private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
+    int TS_NORMAL; // normal text size
+    int TS_BIG; // large text size
     Screen entryScreen;
     PlayScreen playScreen;
     Screen currentScreen;
     FullScreenView mainView;
     Typeface gamefont;
+    float scalefactor; // scaling factor for current device screen, compared to expected/development screen
     public SoundPool soundpool = null;
     Map<Sound, Integer> soundMap = null;
-
+    DisplayMetrics metrics;
 
     /**
      * Initialize the activity.
@@ -40,8 +45,17 @@ public class MainActivity extends ActionBarActivity {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
             super.onCreate(savedInstanceState);
+            metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            gamefont = Typeface.createFromAsset(getAssets(), "lt.ttf");
+            scalefactor = (float)metrics.densityDpi / EXPECTED_DENSITY;
+            if (scalefactor > 1.5f)
+                scalefactor = 1.5f;
+            else if (scalefactor < 0.5f)
+                scalefactor = 0.5f;
+            TS_NORMAL = (int)(35 * scalefactor);
+            TS_BIG = (int)(70 * scalefactor);
 
             // create screens
             entryScreen = new EntryScreen(this);
@@ -50,8 +64,7 @@ public class MainActivity extends ActionBarActivity {
             mainView = new FullScreenView(this);
             setContentView(mainView);
 
-            gamefont = Typeface.createFromAsset(getAssets(), "lt.ttf");
-
+            // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
             soundpool = new SoundPool(15, AudioManager.STREAM_MUSIC, 0);
             soundMap = new HashMap();
@@ -111,31 +124,20 @@ public class MainActivity extends ActionBarActivity {
         super.onPause();
         mainView.pause();
     }
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-*/
+    /**
+     *
+     * @return font to be used
+     */
     public Typeface getGameFont() {
         return gamefont;
+    }
+
+    /**
+     * @return displaymetrics of screen we are playing on.
+     */
+    public DisplayMetrics getDisplayMetrics(){
+        return metrics;
     }
 
     // screen transitions

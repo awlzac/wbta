@@ -8,8 +8,8 @@ android {
         applicationId "com.bulsy.wbtempest"
         minSdkVersion 11
         targetSdkVersion 21
-        versionCode 1
-        versionName "0.9"
+        versionCode 3
+        versionName "1.0.1"
     }
     buildTypes {
         release {

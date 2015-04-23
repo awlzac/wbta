@@ -16,7 +16,6 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -77,10 +76,6 @@ public class PlayScreen extends Screen {
     private String info= "";
     private int levchgStreamID = 0;
     boolean hasSpike[] = new boolean[Board.MAX_COLS]; // most columns any screen will have
-
-
-    static final int TS_NORMAL = 30; // normal text size
-    static final int TS_BIG = 70; // large text size
 
     private Paint p=new Paint();
     private long frtime = 0;
@@ -418,7 +413,7 @@ public class PlayScreen extends Screen {
             {
                 p.setColor(Color.WHITE);
                 p.setTypeface(act.getGameFont());
-                p.setTextSize(TS_BIG);
+                p.setTextSize(act.TS_BIG);
                 drawCenteredText(c, "PAUSED", v.getHeight() / 2, p, 0);
                 return;
             }
@@ -511,12 +506,12 @@ public class PlayScreen extends Screen {
 
             p.setColor(Color.GREEN);
             p.setTypeface(act.getGameFont());
-            p.setTextSize(TS_BIG);
+            p.setTextSize(act.TS_BIG);
 //		g2d.drawString("SCORE:", 5, 15);
             c.drawText(Integer.toString(score), 50, 55, p);
             if (score > hiscore)
                 hiscore = score;
-            p.setTextSize(TS_NORMAL);
+            p.setTextSize(act.TS_NORMAL);
             drawCenteredText(c, "HIGH: " + hiscore, 30, p, 0);
             drawCenteredText(c, "LEVEL: "+levelnum, 55, p, 0);
             c.drawText("LIVES:", v.getWidth()-130, 30, p);
@@ -532,7 +527,7 @@ public class PlayScreen extends Screen {
             c.drawRect(btnFire2Bounds, p);
             p.setARGB(200, 100, 80, 80);
             c.drawRect(btnSuperzapBounds, p);
-            p.setTextSize(TS_BIG);
+            p.setTextSize(act.TS_BIG);
             String txt = "FIRE";
             p.setColor(Color.BLACK);
             c.drawText(txt, getCenteredBtnX(txt, btnFire1Bounds), getCenteredBtnY(txt, btnFire1Bounds), p);
@@ -545,13 +540,13 @@ public class PlayScreen extends Screen {
             c.drawText(txt, getCenteredBtnX(txt, btnSuperzapBounds), getCenteredBtnY(txt, btnSuperzapBounds), p);
 
             if (levelprep){
-                p.setTextSize(TS_NORMAL);
+                p.setTextSize(act.TS_NORMAL);
                 p.setColor(Color.BLUE);
                 drawCenteredText(c, "SUPERZAPPER RECHARGE", v.getHeight() *2/3, p, 0);
             }
 
             if (levelcleared && levelnum == Board.FIRST_SPIKE_LEVEL) {
-                p.setTextSize(TS_NORMAL);
+                p.setTextSize(act.TS_NORMAL);
                 p.setColor(Color.WHITE);
                 drawCenteredText(c, "AVOID  SPIKES", v.getHeight() / 2, p, 0);
             }
@@ -559,9 +554,9 @@ public class PlayScreen extends Screen {
 
             if (gameover) {
                 p.setColor(Color.GREEN);
-                p.setTextSize(TS_BIG);
+                p.setTextSize(act.TS_BIG);
                 drawCenteredText(c, "GAME OVER", v.getHeight() / 2, p, 0);
-                p.setTextSize(TS_NORMAL);
+                p.setTextSize(act.TS_NORMAL);
                 drawCenteredText(c, "TOUCH TO EXIT", v.getHeight() * 3/4, p, 0);
 
                 try {
@@ -748,6 +743,8 @@ public class PlayScreen extends Screen {
     DisplayMetrics dm = new DisplayMetrics();
     @Override
     public boolean onTouch(MotionEvent e) {
+        boolean last_ptr = false;
+
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -809,14 +806,6 @@ public class PlayScreen extends Screen {
                             float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
                             float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
 
-//                            if (tvx != 0) { // skip those instants where computation gets ruined
-//                                // attempt to scale speed for device size and display density
-//                                act.getWindowManager().getDefaultDisplay().getMetrics(dm);
-//                                int dpi = dm.densityDpi;
-//                                float speedfactor = dpi / 280f;  // game constants were tuned on a device with appx this density, so if current density s different, we should scale
-//                                tvx = tvx / speedfactor;
-//                                tvy = tvy / speedfactor;
-
                                 if (tvx == 0)
                                     tvx = 0.001f;
                                 double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
@@ -828,20 +817,22 @@ public class PlayScreen extends Screen {
                                 crawler.accel(fact);
                                 info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
                                         (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
-  //                          }
                         }
                     }
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
+                last_ptr = true;
             case MotionEvent.ACTION_POINTER_UP:
                 int lidx = mvmtPrtList.lastIndexOf(e.getPointerId(e.getActionIndex()));
                 if (lidx > -1) {
                     mvmtPrtList.remove(lidx);
                     crawler.stop();
                     info = "stopped by release";
-                    mVelocityTracker.recycle();
+                    if (last_ptr)
+                      mVelocityTracker.recycle();
+//                    mVelocityTracker = null;
                 }
                 else
                 { // was a button press

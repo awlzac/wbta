@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import com.bulsy.wbtempest.BuildConfig;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,33 +20,12 @@ import java.io.InputStream;
 public class EntryScreen extends Screen {
     MainActivity act;
     Paint p = new Paint();
-    //Bitmap screenbtm, playbtm, exitbtm;
     Rect scaledDst = new Rect(); // generic rect for scaling
     Rect playBtnBounds = null;
     Rect exitBtnBounds = null;
 
     public EntryScreen(MainActivity act) {
         this.act = act;
-
-        /*
-        try {
-            // load screen bg
-            AssetManager assetManager = act.getAssets();
-            InputStream inputStream = assetManager.open("entryscreen.png");
-            screenbtm = BitmapFactory.decodeStream(inputStream);
-            inputStream.close();
-            inputStream = assetManager.open("playbtn.png");
-            playbtm = BitmapFactory.decodeStream(inputStream);
-            inputStream.close();
-            inputStream = assetManager.open("exitbtn.png");
-            exitbtm = BitmapFactory.decodeStream(inputStream);
-            inputStream.close();
-        }
-        catch (Exception e) {
-            // what to do with an exception here on android?
-            Log.d(MainActivity.LOG_ID, "onTouch", e);
-        }
-        */
     }
 
     @Override
@@ -62,17 +42,12 @@ public class EntryScreen extends Screen {
 
         // draw the screen
         c.drawRGB(0, 0, 0);
-//        scaledDst.set(0, 0, width, height);
-//        c.drawBitmap(screenbtm, null, scaledDst, p);
 
         p.setTypeface(act.getGameFont());
         p.setColor(Color.GREEN);  // dark greenish
         p.setTextSize(100);
         String txt = "WBT";
         c.drawText(txt, (v.getWidth()-p.measureText(txt))/2, height/3, p);
-        //p.setTextSize(30);
-        //txt = "WANNABE TEMPEST";
-        //c.drawText(txt, v.getWidth()/2-p.measureText(txt), height/4, p);
 
         p.setTextSize(60);
         if (playBtnBounds == null) {
@@ -93,9 +68,10 @@ public class EntryScreen extends Screen {
         c.drawText(playmsg, playBtnBounds.left, playBtnBounds.bottom, p);
         c.drawText(exitmsg, exitBtnBounds.left, exitBtnBounds.bottom, p);
 
-        // version/copyright line
+        // version line
         p.setTextSize(30);
-        String msg = "v"+BuildConfig.VERSION_NAME;
+        String msg = "v"+ BuildConfig.VERSION_NAME;
+//        com.bulsy.wbtempest.BuildConfig.VERSION_NAME
         int xTextEnd = (int)(width*.99f);
         c.drawText(msg, xTextEnd-p.measureText(msg), height - 80, p);
         int w1 = scaledDst.width();
