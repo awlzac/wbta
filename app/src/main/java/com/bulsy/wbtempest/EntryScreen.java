@@ -25,6 +25,7 @@ public class EntryScreen extends Screen {
     Rect exitBtnBounds = null;
 
     public EntryScreen(MainActivity act) {
+        int x = ZMagic.Z_MAX_CACHE; // force load of ZMagic class while showing entry screen
         this.act = act;
     }
 
@@ -37,8 +38,8 @@ public class EntryScreen extends Screen {
     public void draw(Canvas c, View v) {
         int width = v.getWidth();
         int height = v.getHeight();
-        String playmsg = "PLAY";
-        String exitmsg = "EXIT";
+        String playmsg = act.getResources().getString(R.string.play);
+        String exitmsg = act.getResources().getString(R.string.exitapp);
 
         // draw the screen
         c.drawRGB(0, 0, 0);

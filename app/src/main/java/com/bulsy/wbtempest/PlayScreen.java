@@ -54,6 +54,7 @@ public class PlayScreen extends Screen {
     private int lives;
     private int score;
     private int hiscore=0;
+    private float scorertx = -1;
     private int boardpov;
     private int crawlerzoffset;
     private long deathPauseTime = 0;
@@ -70,9 +71,11 @@ public class PlayScreen extends Screen {
     private boolean crawlerSpiked;
     private List<int[]> starList = null;  // will be created and populated first time around
     int[] xycoords = new int[2];
-    float[] starpts = new float[NUM_STARS*2];
+//    float[] starpts = new float[NUM_STARS*2];
     Paint starpaint = new Paint();
-    private int height, width;
+    private int height, width, halfheight, halfwidth;
+    private int rhstextoffset;
+    private int statstextheight, statstextheight2;
     private String info= "";
     private int levchgStreamID = 0;
     boolean hasSpike[] = new boolean[Board.MAX_COLS]; // most columns any screen will have
@@ -83,6 +86,16 @@ public class PlayScreen extends Screen {
     private Rect scaledDst = new Rect();
     private MainActivity act = null;
     private boolean gamestarting = true;  // flag to init level from within update, so that we have screen coords
+
+    private String lblLives;
+    private String lblHigh;
+    private String lblLevel;
+    private String lblFire;
+    private String lblZap;
+    private String lblZapRechg;
+    private String lblAvoidSpikes;
+    private String lblExit;
+    private String lblGameOver;
 
     public PlayScreen(MainActivity act) {
         this.act = act;
@@ -99,6 +112,16 @@ public class PlayScreen extends Screen {
         } catch (Exception e) {
             Log.d(MainActivity.LOG_ID, "ReadHiScore", e);
         }
+
+        lblLevel = act.getResources().getString(R.string.level)+": ";
+        lblHigh = act.getResources().getString(R.string.high)+": ";
+        lblLives = act.getResources().getString(R.string.lives)+": ";
+        lblFire = act.getResources().getString(R.string.fire);
+        lblZap = act.getResources().getString(R.string.zap);
+        lblZapRechg = act.getResources().getString(R.string.zaprechg);
+        lblAvoidSpikes = act.getResources().getString(R.string.avoidspikes);
+        lblGameOver = act.getResources().getString(R.string.gameover);
+        lblExit = act.getResources().getString(R.string.exit);
 
         startGame();
     }
@@ -210,15 +233,25 @@ public class PlayScreen extends Screen {
 
         if (btnFire1Bounds == null) {
             // init button locs
-            buttonLimitLine = (int)(v.getHeight() *4.0f/5.0f);
-            int spacer = 10;
-            int x_sep1 = (int)(v.getWidth() *2.0f/5.0f);
-            int x_sep2 = (int)(v.getWidth() *3.0f/5.0f);
-            btnFire1Bounds = new Rect(spacer, buttonLimitLine, x_sep1 - spacer/2, v.getHeight()-spacer);
-            btnSuperzapBounds = new Rect(x_sep1 +spacer/2, buttonLimitLine, x_sep2 - spacer/2, v.getHeight()-spacer);
-            btnFire2Bounds = new Rect(x_sep2+spacer/2, buttonLimitLine, v.getWidth()-spacer, v.getHeight()-spacer);
             width = v.getWidth();
+            halfwidth = width/2;
             height = v.getHeight();
+            halfheight = height/2;
+            buttonLimitLine = (int)(height * .8f);
+            int spacer = 10;
+            int halfspacer = spacer>>1;
+            int x_sep1 = (int)(width * .4f);
+            int x_sep2 = (int)(width * .6f);
+            btnFire1Bounds = new Rect(spacer, buttonLimitLine, x_sep1 - halfspacer, height-spacer);
+            btnSuperzapBounds = new Rect(x_sep1 +halfspacer, buttonLimitLine, x_sep2 - halfspacer, height-spacer);
+            btnFire2Bounds = new Rect(x_sep2+halfspacer, buttonLimitLine, v.getWidth()-spacer, height-spacer);
+            p.setTextSize(act.TS_NORMAL);
+            p.setTypeface(act.getGameFont());
+            String t = lblLives+": 9";
+            rhstextoffset = (int)p.measureText(t);
+            p.getTextBounds(t, 0, t.length()-1, scaledDst);
+            statstextheight = (int)(scaledDst.height() +8);
+            statstextheight2 = statstextheight * 2;
         }
 
         if (starList == null) {
@@ -439,7 +472,7 @@ public class PlayScreen extends Screen {
                     starpaint.setStrokeCap(Paint.Cap.ROUND);
                     for (int[] s : starList) {
                         int zdist = s[2] - boardpov;
-                        xycoords = ZMagic.renderFromZ(s[0], s[1], zdist, board);
+                        xycoords = ZMagic.renderFromZ(s[0], s[1], zdist, board, xycoords);
                         if (levelnum > Board.NUMSCREENS)
                             starpaint.setARGB(255, r.nextInt(255),r.nextInt(255),r.nextInt(255));
                         if (zdist < 200)
@@ -507,19 +540,22 @@ public class PlayScreen extends Screen {
             p.setColor(Color.GREEN);
             p.setTypeface(act.getGameFont());
             p.setTextSize(act.TS_BIG);
+            if (scorertx < 0) {
+                scorertx = p.measureText("100000");  // right align of score should just be enough for 6 digits
+            }
 //		g2d.drawString("SCORE:", 5, 15);
-            c.drawText(Integer.toString(score), 50, 55, p);
+            String scorestr = Integer.toString(score);
+            c.drawText(scorestr, scorertx-p.measureText(scorestr), statstextheight2, p);
             if (score > hiscore)
                 hiscore = score;
             p.setTextSize(act.TS_NORMAL);
-            drawCenteredText(c, "HIGH: " + hiscore, 30, p, 0);
-            drawCenteredText(c, "LEVEL: "+levelnum, 55, p, 0);
-            c.drawText("LIVES:", v.getWidth()-130, 30, p);
-            c.drawText(Integer.toString(lives), v.getWidth()-40, 30, p);
+            drawCenteredText(c, lblHigh + hiscore, statstextheight, p, 0);
+            drawCenteredText(c, lblLevel+levelnum, statstextheight2, p, 0);
+            c.drawText(lblLives+lives, width-rhstextoffset, statstextheight, p);
 
 //            // onscreen dbg info
 //            c.drawText(info, 50, 150, p);
-//            c.drawText("fps:"+fps, 50, 100, p);
+            c.drawText("fps:"+fps, 50, 100, p);
 
             // draw fire buttons
             p.setARGB(255, 170, 0, 0);
@@ -528,36 +564,33 @@ public class PlayScreen extends Screen {
             p.setARGB(200, 100, 80, 80);
             c.drawRect(btnSuperzapBounds, p);
             p.setTextSize(act.TS_BIG);
-            String txt = "FIRE";
             p.setColor(Color.BLACK);
-            c.drawText(txt, getCenteredBtnX(txt, btnFire1Bounds), getCenteredBtnY(txt, btnFire1Bounds), p);
-            c.drawText(txt, getCenteredBtnX(txt, btnFire2Bounds), getCenteredBtnY(txt, btnFire2Bounds), p);
-            txt = "ZAP";
+            c.drawText(lblFire, getCenteredBtnX(lblFire, btnFire1Bounds), getCenteredBtnY(lblFire, btnFire1Bounds), p);
+            c.drawText(lblFire, getCenteredBtnX(lblFire, btnFire2Bounds), getCenteredBtnY(lblFire, btnFire2Bounds), p);
             if (superzaps > 0)
                 p.setColor(Color.RED);
             else
                 p.setColor(Color.BLACK);
-            c.drawText(txt, getCenteredBtnX(txt, btnSuperzapBounds), getCenteredBtnY(txt, btnSuperzapBounds), p);
+            c.drawText(lblZap, getCenteredBtnX(lblZap, btnSuperzapBounds), getCenteredBtnY(lblZap, btnSuperzapBounds), p);
 
             if (levelprep){
                 p.setTextSize(act.TS_NORMAL);
                 p.setColor(Color.BLUE);
-                drawCenteredText(c, "SUPERZAPPER RECHARGE", v.getHeight() *2/3, p, 0);
+                drawCenteredText(c, lblZapRechg, height * 2/3, p, 0);
             }
 
             if (levelcleared && levelnum == Board.FIRST_SPIKE_LEVEL) {
                 p.setTextSize(act.TS_NORMAL);
                 p.setColor(Color.WHITE);
-                drawCenteredText(c, "AVOID  SPIKES", v.getHeight() / 2, p, 0);
+                drawCenteredText(c, lblAvoidSpikes, height>>1, p, 0);
             }
-
 
             if (gameover) {
                 p.setColor(Color.GREEN);
                 p.setTextSize(act.TS_BIG);
-                drawCenteredText(c, "GAME OVER", v.getHeight() / 2, p, 0);
+                drawCenteredText(c, lblGameOver, v.getHeight() / 2, p, 0);
                 p.setTextSize(act.TS_NORMAL);
-                drawCenteredText(c, "TOUCH TO EXIT", v.getHeight() * 3/4, p, 0);
+                drawCenteredText(c, lblExit, v.getHeight() * 3/4, p, 0);
 
                 try {
                     BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
@@ -737,14 +770,11 @@ public class PlayScreen extends Screen {
         c.drawText(msg, (c.getWidth() - scaledDst.width()) / 2 + shift, height, p);
     }
 
-    VelocityTracker mVelocityTracker = null;
-    List<Integer> mvmtPrtList = new LinkedList<Integer>();
+    VelocityTracker mVelocityTracker = VelocityTracker.obtain();
     List<Integer> fireList = new LinkedList<Integer>();
     DisplayMetrics dm = new DisplayMetrics();
     @Override
     public boolean onTouch(MotionEvent e) {
-        boolean last_ptr = false;
-
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -755,6 +785,7 @@ public class PlayScreen extends Screen {
                 int idx = e.getActionIndex();
                 int pid = e.getPointerId(idx);
                 if (e.getY(idx) > buttonLimitLine) {
+                    // user pressing btns, not movement
                     //Log.d(act.LOG_ID, "BTN DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
                     if (btnFire1Bounds.contains((int)e.getX(idx), (int)e.getY(idx)) || btnFire2Bounds.contains((int)e.getX(idx), (int)e.getY(idx))) {
                         // fire!
@@ -768,37 +799,37 @@ public class PlayScreen extends Screen {
                     }
                 }
                 else {
-                    mvmtPrtList.add(pid);
-                    //Log.d(act.LOG_ID, "DIAL DOWN: "+e.getActionMasked()+", "+e.getX(idx)+","+e.getY(idx)+"; idx:"+idx+" pid:"+pid);
-                    if (mVelocityTracker == null) {
-                        // Retrieve a new VelocityTracker object to watch the velocity of a motion.
-                        mVelocityTracker = VelocityTracker.obtain();
-                    } else {
-                        // Reset the velocity tracker back to its initial state.
-                        mVelocityTracker.clear();
-                    }
-
+                    // crawler movement
+                    mVelocityTracker.clear();
                     // Add a user's movement to the tracker.
                     mVelocityTracker.addMovement(e);
                 }
-
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 for (int i = 0; i < e.getPointerCount(); i++) {
                     pid = e.getPointerId(i);
-                    if (mvmtPrtList.contains(pid)) {
+                    if (!fireList.contains(pid)) {
+                        // user is moving crawler
                         //Log.d(act.LOG_ID, "MOVE, dial; pid " + pid);
                         mVelocityTracker.addMovement(e);
+                        float effx = e.getX(i) - halfwidth;
+                        float effy = e.getY(i) - halfheight;
 
+                        float xfact = -effy/halfheight;
+                        float yfact = effx/halfwidth;
+                        mVelocityTracker.computeCurrentVelocity(1000);
+                        float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
+                        float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
+                        double fact = (tvx*xfact + tvy*yfact)/(MAX_VEL/3);
+                        crawler.accel(fact);
+
+/*
                         // come up with magnitude of portion of movement vector in same direction
                         // as unit vector normal to position vector relative to center.
                         // damn, that was a lot of words.
                         // basically, "control movement like on an iPod"
-                        float effx = e.getX(i) - width / 2;
-                        float effy = e.getY(i) - height / 2;
-
-                        double posmag = Math.sqrt(Math.pow(effx, 2) + Math.pow(effy, 2));
+                        double posmag = Math.sqrt(effx*effx + effy*effy);
                         if (Math.abs(posmag) > 100) { // ignore if too close to center
                             double posdir = Math.atan2(effy, effx);
                             double posnormdir = posdir + Math.PI / 2;
@@ -815,38 +846,32 @@ public class PlayScreen extends Screen {
                                 double alignedComponentFactor = Math.cos(veldir - posnormdir);
                                 double fact = alignedComponentFactor * velmag / MAX_VEL;
                                 crawler.accel(fact);
-                                info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
-                                        (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
+//                                info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
+//                                        (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
                         }
+*/
                     }
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-                last_ptr = true;
             case MotionEvent.ACTION_POINTER_UP:
-                int lidx = mvmtPrtList.lastIndexOf(e.getPointerId(e.getActionIndex()));
-                if (lidx > -1) {
-                    mvmtPrtList.remove(lidx);
+                if (!fireList.contains(e.getPointerId(e.getActionIndex()))){
                     crawler.stop();
-                    info = "stopped by release";
-                    if (last_ptr)
-                      mVelocityTracker.recycle();
-//                    mVelocityTracker = null;
+                    //info = "stopped by release";
                 }
                 else
                 { // was a button press
-                    lidx = fireList.lastIndexOf(e.getPointerId(e.getActionIndex()));
+                    int lidx = fireList.lastIndexOf(e.getPointerId(e.getActionIndex()));
                     if (lidx > -1) {
                         fireList.remove(lidx);
-                        fireMissile = false;
                     }
+                    if (fireList.size() == 0)
+                        fireMissile = false;
                 }
                 break;
-
         }
 
         return true;
     }
-
 }

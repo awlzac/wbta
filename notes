@@ -1,7 +1,13 @@
 wannabe-tempest for android
 ---------------
 
-on tablet, V screen doesnt draw correctly.  may be fixed, need to check
+on tablet, V screen doesn't draw correctly.  may be fixed, need to check
+
+text align: score, and high/lives spacing
+add extra life at 20000
+end of round bonuses
+
+add ability to choose start level if unlocked
 
 possibly other levels?
 
@@ -14,7 +20,7 @@ plus cvd
 cloverthing
 --flat v
 --jagged v
-U
+-- U
 --straight
 heart
 multistar

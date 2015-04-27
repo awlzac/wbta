@@ -49,6 +49,7 @@ public class MainActivity extends ActionBarActivity {
             metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
             gamefont = Typeface.createFromAsset(getAssets(), "lt.ttf");
+            //scalefactor = (float)Math.pow(metrics.densityDpi / EXPECTED_DENSITY, 1.1);
             scalefactor = (float)metrics.densityDpi / EXPECTED_DENSITY;
             if (scalefactor > 1.5f)
                 scalefactor = 1.5f;
@@ -66,7 +67,7 @@ public class MainActivity extends ActionBarActivity {
 
             // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
-            soundpool = new SoundPool(15, AudioManager.STREAM_MUSIC, 0);
+            soundpool = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
             soundMap = new HashMap();
             AssetFileDescriptor descriptor = getAssets().openFd("fire.mp3");
             soundMap.put(Sound.FIRE, soundpool.load(descriptor, 1));
@@ -80,6 +81,7 @@ public class MainActivity extends ActionBarActivity {
             soundMap.put(Sound.ENEMYDEATH, soundpool.load(descriptor, 1));
             descriptor = getAssets().openFd("levchg1.mp3");
             soundMap.put(Sound.LEVCHG, soundpool.load(descriptor, 1));
+
         } catch (Exception e) {
             // panic, crash, fine -- but let me know what happened.
             Log.d(LOG_ID, "onCreate", e);

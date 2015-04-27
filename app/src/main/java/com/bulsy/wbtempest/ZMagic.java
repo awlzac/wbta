@@ -2,7 +2,10 @@ package com.bulsy.wbtempest;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This handles rendering and conversion from x,y,z space to actual
@@ -13,6 +16,14 @@ import java.util.List;
 public class ZMagic {
     private static double ZSTRETCH = 100; // lower = more stretched on z axis
     private static Paint paint=new Paint();
+
+    static final int Z_MAX_CACHE = Board.BOARD_DEPTH * 3;
+    private static double[] zfactMap = new double[Z_MAX_CACHE];
+    static {
+        for (int i=0; i < Z_MAX_CACHE; i++) {
+            zfactMap[i] = getRawZFact(i);
+        }
+    }
 
     /**
      * This is how we achieve the 3D effect.  The z-axis is assumed to
@@ -28,18 +39,21 @@ public class ZMagic {
      * @return
      */
     private static double getRawZFact(int z) {
-        return 1.0-(ZSTRETCH/(z+ZSTRETCH) );
+        return 1.0-(ZSTRETCH/((double)z+ZSTRETCH) );
     }
 
     // the downside to the curve used to represent the z-axis, is that
     // it goes to infinity quickly for negative Z values.  to get around this,
     // a line is used to continue the slope manageably for negative z.
     private static final double ZFACT_TAIL_SLOPE = 2*(getRawZFact(1)- getRawZFact(0)) / (1-0);
+    private static final int Z_SLOPE_CUTOFF = -Ex.HEIGHT;
 
     private static double getZFact(int z) {
-        double zfact = getRawZFact(z);
-        if (z<-Ex.HEIGHT) // switch to a constant slope to avoid math oblivion for negative z
-            zfact = z * ZFACT_TAIL_SLOPE;
+        double zfact;
+        if (z < Z_SLOPE_CUTOFF) // switch to a constant slope to avoid math oblivion for negative z
+            zfact = (double)z * ZFACT_TAIL_SLOPE;
+        else
+            zfact = getRawZFact(z);
         return zfact;
     }
 
@@ -52,11 +66,14 @@ public class ZMagic {
      * @param z
      * @return int array holding x and y coords.
      */
-    public static int[] renderFromZ(int x, int y, int z, Board board){
-        double zfact = getZFact(z);
-        int eff_x = x + (int)(zfact * (board.getZPull_X()-x));
-        int eff_y = y + (int)(zfact * (board.getZPull_Y()-y));
-        int[] effcoords = {eff_x, eff_y};
+    static int[] renderFromZ(int x, int y, int z, Board board, int[] effcoords){
+        double zfact;
+        if (z >= 0 && z < Z_MAX_CACHE)
+            zfact = zfactMap[z];
+        else
+            zfact = getZFact(z);
+        effcoords[0] = x + (int)(zfact * (board.zpull_x-x));
+        effcoords[1] = y + (int)(zfact * (board.zpull_y-y));
         return effcoords;
     }
 
@@ -71,6 +88,9 @@ public class ZMagic {
         drawObject(c, color, coords, board, boardpov, 0);
     }
 
+    private static final int MAX_POINTS = 20;  // max points in a drawable object
+    private static float pts[] = new float[4 * MAX_POINTS];
+    private static int effcoords[] = new int[2];  // reusable coords for z-rendering of drawn object
     /**
      * Draw the object inpassed, which is assumed to be a set of coordinates
      * of dots to connect.  inpassed coords are 3d (x, y, z space).
@@ -84,20 +104,21 @@ public class ZMagic {
      * @param zoffset
      */
     public static void drawObject(Canvas c, int color, List<int[]> coords, Board board, int boardpov, int zoffset){
-        int oldx = 0, oldy=0;
+        int idx = 0;
         paint.setColor(color);
+        int nLines = coords.size()-1;
         for (int i=0; i<coords.size(); i++)
         {
-            int x=coords.get(i)[0];
-            int y=coords.get(i)[1];
-            int z=coords.get(i)[2];
-            int[] eff_coords = renderFromZ(x, y, z-boardpov+zoffset, board);
+            int[] cd = coords.get(i);
+            effcoords = renderFromZ(cd[0], cd[1], cd[2]-boardpov+zoffset, board, effcoords);
 
-            if (i > 0) {
-                c.drawLine(oldx, oldy, eff_coords[0], eff_coords[1], paint);
+            pts[idx++]=effcoords[0];
+            pts[idx++]=effcoords[1];
+            if (i > 0 && i < nLines) {
+                pts[idx++]=effcoords[0];
+                pts[idx++]=effcoords[1];
             }
-            oldx=eff_coords[0];
-            oldy=eff_coords[1];
         }
+        c.drawLines(pts, 0, idx, paint);
     }
 }

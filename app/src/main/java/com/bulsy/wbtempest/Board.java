@@ -20,7 +20,7 @@ public class Board {
     static final int FIRST_SPIKE_LEVEL = 4;  // level at which we first see spikes
     static final int MAX_COLS = 40; // max conceivable number of columns
     private static final int BASE_EX_FIRE_BPS = 2000;  // bps chance per sec that an ex fires at player
-    public static final int NUMSCREENS = 8;  // number of different screen layouts
+    public static final int NUMSCREENS = 9;  // number of different screen layouts
 
     private int levnum;
     private int exesct;
@@ -28,8 +28,8 @@ public class Board {
     private List<Column> columns;
     private boolean continuous;
     private boolean exesCanMove;
-    private int zpull_x;  // z pull is the point that the z-axis leads to for this level
-    private int zpull_y;
+    int zpull_x;  // z pull is the point that the z-axis leads to for this level
+    int zpull_y;
     private static Random r = new Random(new java.util.Date().getTime());
 
 
@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-//        screennum=6;
+        //screennum=8;
 
         switch (screennum) {
             case 0:	// circle
@@ -348,6 +348,37 @@ public class Board {
                 }
                 break;
 
+            case 8:	// U
+                // arc portion
+                ncols = 8;
+                radius *= .9;
+                rad_dist = (float) (Math.PI); // half circ
+                step = rad_dist/(ncols);
+                zpull_x = v.getWidth()/2;
+                zpull_y = v.getHeight()/2;
+                int xradius=0, orgy=0, straightstepdist=0;
+                for (double rads=0; rads < Math.PI+step/2; rads+=step)
+                {
+                    x = cx - (int)(Math.cos(rads) * radius * .95);
+                    y = cy * 5/4 + (int)(Math.sin(rads) * radius);
+                    if (firsttime){
+                        firsttime = false;
+                        xradius = cx - x;
+                        orgy = y;
+                        straightstepdist = (int)(Math.sin(step) * radius);
+                    }
+                    else {
+                        columns.add(new Column(oldx, oldy, x, y));
+                    }
+                    oldx = x;
+                    oldy = y;
+                }
+                for (int i=0; i<3; i++)
+                    columns.add(0, new Column(cx-xradius, orgy-straightstepdist*(i+1), cx-xradius, orgy-straightstepdist*i));
+                for (int i=0; i<3; i++)
+                    columns.add(new Column(cx+xradius, orgy-straightstepdist*i, cx+xradius, orgy-straightstepdist*(i+1)));
+                break;
+
         }
     }
 
@@ -361,13 +392,13 @@ public class Board {
         return Color.BLUE;
     }
 
-    public int getZPull_X() {
-        return zpull_x;
-    }
+    //public int getZPull_X() {
+    //    return zpull_x;
+    //}
 
-    public int getZPull_Y() {
-        return zpull_y;
-    }
+    //public int getZPull_Y() {
+    //    return zpull_y;
+    //}
 
     public boolean isContinuous(){
         return continuous;
@@ -406,13 +437,11 @@ public class Board {
         return coordList;
     }
 
-
-   // public void addNotify() {
-   //     super.addNotify();
-   // }
-
-
     Paint paint = new Paint();
+    int[] fntCoords = new int[2];  // reusable, VERY NOT multithreadable coordinate storage
+    int[] backCoords = new int[2];  // reusable, VERY NOT multithreadable coordinate storage
+    float[] pcLinePts = new float[8];
+    float[] boardLinePts = new float[3 * 4 * MAX_COLS];
     /**
      * Draw the actual board, based on the coordinates of the front of the
      * current level.  depth axis is generated.
@@ -423,7 +452,9 @@ public class Board {
      * @param isSuperzapping is the player superzapping at moment?
      */
     public void draw(Canvas c,int playerCol, int boardpov, boolean isSuperzapping){
-    	int oldx = 0, oldy=0, oldbackx=0, oldbacky=0;
+    	int oldfntx = 0, oldfnty=0, oldbackx=0, oldbacky=0;
+        int idx=0;
+        int playerColCoord2 = (playerCol + 1);// % columns.size();
     	int boardColor = getLevelColor();
     	if (isSuperzapping) {
     		boardColor = Color.rgb(r.nextInt(255),r.nextInt(255),r.nextInt(255));
@@ -432,39 +463,44 @@ public class Board {
         List<int[]> colCoords = getBoardFrontCoords();
     	for (int i=0; i< colCoords.size(); i++)
     	{
-    		int[] ftCoords = ZMagic.renderFromZ(colCoords.get(i)[0], colCoords.get(i)[1], 0 - boardpov, this);
-    		int x=ftCoords[0];
-    		int y=ftCoords[1];
-    		int[] backCoords = ZMagic.renderFromZ(colCoords.get(i)[0], colCoords.get(i)[1], BOARD_DEPTH-boardpov, this);
-    		int backx = backCoords[0];
-    		int backy = backCoords[1];
+    		fntCoords = ZMagic.renderFromZ(colCoords.get(i)[0], colCoords.get(i)[1], 0 - boardpov, this, fntCoords);
+    		backCoords = ZMagic.renderFromZ(colCoords.get(i)[0], colCoords.get(i)[1], BOARD_DEPTH-boardpov, this, backCoords);
+            if (i == playerCol) {
+                pcLinePts[0] = fntCoords[0];
+                pcLinePts[1] = fntCoords[1];
+                pcLinePts[2] = backCoords[0];
+                pcLinePts[3] = backCoords[1];
+            }
+            else if (i == playerColCoord2) {
+                pcLinePts[4] = fntCoords[0];
+                pcLinePts[5] = fntCoords[1];
+                pcLinePts[6] = backCoords[0];
+                pcLinePts[7] = backCoords[1];
+            }
+            if (i < colCoords.size()-1 || !isContinuous()) {
+                boardLinePts[idx++] = fntCoords[0];
+                boardLinePts[idx++] = fntCoords[1];
+                boardLinePts[idx++] = backCoords[0];
+                boardLinePts[idx++] = backCoords[1];
+            }
     		if (i > 0) {
-    			c.drawLine(oldx, oldy, x, y, paint);
-  			    c.drawLine(oldbackx, oldbacky, backx, backy, paint);
-    			if (i == playerCol || i == playerCol+1){
-    		        paint.setColor(Color.YELLOW);
-    			}
-    			if (i < colCoords.size()-1 || i==playerCol+1 || !isContinuous())
-        			c.drawLine(x,  y, backx, backy, paint);
-    			if (i == playerCol || i == playerCol + 1){
-        	        paint.setColor(boardColor);
-    			}
+                boardLinePts[idx++] = oldfntx;
+                boardLinePts[idx++] = oldfnty;
+                boardLinePts[idx++] = fntCoords[0];
+                boardLinePts[idx++] = fntCoords[1];
+                boardLinePts[idx++] = oldbackx;
+                boardLinePts[idx++] = oldbacky;
+                boardLinePts[idx++] = backCoords[0];
+                boardLinePts[idx++] = backCoords[1];
     		}
-    		else {
-    			if (i == playerCol || i == playerCol+1){
-    		        paint.setColor(Color.YELLOW);
-    			}
-    			c.drawLine(x, y, backx, backy, paint);
-    			if (i == playerCol || i == playerCol + 1){
-        	        paint.setColor(boardColor);
-    			}
-    		}
-    		oldx=x;
-    		oldy=y;
-    		oldbackx=backx;
-    		oldbacky=backy;
+    		oldfntx=fntCoords[0];
+    		oldfnty=fntCoords[1];
+    		oldbackx=backCoords[0];
+    		oldbacky=backCoords[1];
     	}
+        c.drawLines(boardLinePts, 0, idx, paint);
+        paint.setColor(Color.YELLOW);
+        c.drawLines(pcLinePts, paint);
     }
-
 }
 
