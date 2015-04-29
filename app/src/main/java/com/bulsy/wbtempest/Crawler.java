@@ -13,7 +13,7 @@ import java.util.List;
 public class Crawler {
 
 	private static final int C_POSES = 6;
-	private static final double MAXSPEED = 200;
+	private static final double MAXSPEED = 240;
     static final int CHEIGHT = 10;
     private static final int CHEIGHT_H = CHEIGHT/2; // half height
     private static final int CHEIGHT_HP = (int) (CHEIGHT * 0.6);  // slightly more than half

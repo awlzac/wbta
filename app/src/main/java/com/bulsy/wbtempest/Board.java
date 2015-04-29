@@ -43,7 +43,7 @@ public class Board {
         this.levnum = levnum;
 
         int cx = v.getWidth()/2;  // center for drawing; not same as where z-axis goes to.
-        int cy = v.getHeight() * 24/60;
+        int cy = v.getHeight() * 25/60;  // buttons at bottom of screen, so "center" is  usually a little high of actual screen center
 
         zpull_x = v.getWidth()/2;  // where z-axis goes; default z pull to be just low of center.
         zpull_y = v.getHeight() *33/60;
@@ -62,18 +62,18 @@ public class Board {
         else spikespct = (float) 1;
         float rad_dist;
         float step;
-        int radius = (int)(v.getWidth()/2); // consistent-ish radius for levels that have one
+        int radius = (int)(v.getWidth()*0.48); // consistent-ish radius for levels that have one
         columns.clear();
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        //screennum=8;
+        //screennum=3;
 
         switch (screennum) {
             case 0:	// circle
                 ncols = 16;
                 continuous = true;
-                rad_dist = (float) (3.1415927 * 2);
+                rad_dist = (float) (Math.PI * 2);
                 step = rad_dist/(ncols);
                 for (float rads=0; rads < rad_dist+step/2; rads+=step)
                 {
@@ -188,21 +188,26 @@ public class Board {
                 oldy = y;
                 break;
 
-            case 3: // infinitything
+            case 3: // infinitybinocularthing
                 ncols = 8;
-                zpull_y = cy*41/40;
+                zpull_y = cy;//*41/40;
                 continuous = true;
                 rad_dist = (float) (Math.PI * 2);
                 step = rad_dist/(ncols);
                 int origx=0;
-                int cxc = (int)((float)cx * .45);
-                radius = (int)((cx - cxc)*0.81f);
+                int cxc = (int)((float)cx * .44);
+                //radius = (int)((cx - cxc)*0.81f);
+                radius = (int)((cx - cxc)*0.89f);
+                int i = 0;
                 for (float rads=-1.5f*step; rads < rad_dist-step*1.5; rads+=step)
                 {
-                    x = cxc - (int)(Math.sin(rads) * radius * .95);
+                    x = cxc - (int)(Math.sin(rads) * radius * .90);
                     y = cy - (int)(Math.cos(rads) * radius);
-                    if (firsttime){
-                        firsttime = false;
+                    if (i == 0 || i == 7){
+                        y = cy - (int)(Math.cos(rads) * radius * 1.3);
+                        x = cxc - (int)(Math.sin(rads) * radius * .85);
+                    }
+                    if (i==0){
                         origx = x;
                     }
                     else {
@@ -211,21 +216,23 @@ public class Board {
                     }
                     oldx = x;
                     oldy = y;
+                    i++;
                 }
-                cxc = (int)((float)cx * 1.55);
+                cxc = (int)((float)cx * 1.56);
+                i = 0;
                 for (float rads=+2.5f*step; rads < rad_dist+1.5*step; rads+=step)
                 {
-                    x = cxc - (int)(Math.sin(rads) * radius * .95);
+                    x = cxc - (int)(Math.sin(rads) * radius * .90);
                     y = cy - (int)(Math.cos(rads) * radius);
-                    if (firsttime){
-                        firsttime = false;
+                    if (i == 0 || i == 7){
+                        y = cy - (int)(Math.cos(rads) * radius * 1.3);
+                        x = cxc - (int)(Math.sin(rads) * radius * .85);
                     }
-                    else {
-                        Column col = new Column(oldx, oldy, x, y);
-                        columns.add(col);
-                    }
+                    Column col = new Column(oldx, oldy, x, y);
+                    columns.add(col);
                     oldx = x;
                     oldy = y;
+                    i++;
                 }
                 columns.add(new Column(oldx, oldy, origx, y));
                 break;
@@ -276,23 +283,20 @@ public class Board {
             case 5: // straight, angled V
                 ncols = 16;
                 // need a different z-pull for a board using this screen
-                zpull_x = v.getWidth()/2;
+                zpull_x = cx;
                 zpull_y = v.getHeight() /4;
-                for (x = cx/4, y=cy/3; x < cx; x+= cx*2/3/(ncols/2), y+=(cy*2.5)/(ncols)){
+                int yhi = cy/3;
+                int ylow = cy*5/3;
+                int ydist = ylow-yhi;
+                int xdist = cx * 3/2;  // 1/4 of cx on each side
+                for (x = 0, y = ylow; y >= yhi; x+= xdist/(ncols), y-=ydist/(ncols/2)){
                     if (firsttime){
                         firsttime = false;
                     }
                     else {
-                        Column col = new Column(oldx, oldy, x, y);
-                        columns.add(col);
+                        columns.add(0, new Column(cx-x, y, cx-oldx, oldy));
+                        columns.add(new Column(cx+oldx, oldy, cx+x, y));
                     }
-                    oldx = x;
-                    oldy = y;
-                }
-                int diffx = x - cx; // we may have a remainder, and on some screen sizes this may screw up rendering
-                for (; x <= cx*7/4 + diffx; x+= cx*2/3/(ncols/2), y-=(cy*2.5)/(ncols)){
-                    Column col = new Column(oldx, oldy, x, y);
-                    columns.add(col);
                     oldx = x;
                     oldy = y;
                 }
@@ -328,7 +332,38 @@ public class Board {
                 }
                 break;
 
-            case 7: // straight line
+            case 7:	// U
+                // arc portion
+                ncols = 8;
+                radius *= .9;
+                rad_dist = (float) (Math.PI); // half circ
+                step = rad_dist/(ncols);
+                zpull_x = v.getWidth()/2;
+                zpull_y = v.getHeight()*4/7;
+                int xradius=0, orgy=0, straightstepdist=0;
+                for (double rads=0; rads < Math.PI+step/2; rads+=step)
+                {
+                    x = cx - (int)(Math.cos(rads) * radius * .95);
+                    y = cy * 11/5 + (int)(Math.sin(rads) * radius);
+                    if (firsttime){
+                        firsttime = false;
+                        xradius = cx - x;
+                        orgy = y;
+                        straightstepdist = (int)(Math.sin(step) * radius);
+                    }
+                    else {
+                        columns.add(new Column(oldx, oldy, x, y));
+                    }
+                    oldx = x;
+                    oldy = y;
+                }
+                for (int j=0; j<3; j++)
+                    columns.add(0, new Column(cx-xradius, orgy-straightstepdist*(j+1), cx-xradius, orgy-straightstepdist*j));
+                for (int j=0; j<3; j++)
+                    columns.add(new Column(cx+xradius, orgy-straightstepdist*j, cx+xradius, orgy-straightstepdist*(j+1)));
+                break;
+
+            case 8: // straight line
                 ncols = 14;
                 // need a different z-pull for a board using this screen
                 zpull_x = v.getWidth()/2;
@@ -347,38 +382,6 @@ public class Board {
 
                 }
                 break;
-
-            case 8:	// U
-                // arc portion
-                ncols = 8;
-                radius *= .9;
-                rad_dist = (float) (Math.PI); // half circ
-                step = rad_dist/(ncols);
-                zpull_x = v.getWidth()/2;
-                zpull_y = v.getHeight()/2;
-                int xradius=0, orgy=0, straightstepdist=0;
-                for (double rads=0; rads < Math.PI+step/2; rads+=step)
-                {
-                    x = cx - (int)(Math.cos(rads) * radius * .95);
-                    y = cy * 5/4 + (int)(Math.sin(rads) * radius);
-                    if (firsttime){
-                        firsttime = false;
-                        xradius = cx - x;
-                        orgy = y;
-                        straightstepdist = (int)(Math.sin(step) * radius);
-                    }
-                    else {
-                        columns.add(new Column(oldx, oldy, x, y));
-                    }
-                    oldx = x;
-                    oldy = y;
-                }
-                for (int i=0; i<3; i++)
-                    columns.add(0, new Column(cx-xradius, orgy-straightstepdist*(i+1), cx-xradius, orgy-straightstepdist*i));
-                for (int i=0; i<3; i++)
-                    columns.add(new Column(cx+xradius, orgy-straightstepdist*i, cx+xradius, orgy-straightstepdist*(i+1)));
-                break;
-
         }
     }
 

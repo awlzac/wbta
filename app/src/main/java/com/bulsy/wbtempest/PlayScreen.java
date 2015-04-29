@@ -136,6 +136,7 @@ public class PlayScreen extends Screen {
         score = 0;
         levelnum = 1;
         gamestarting = true;
+        frtime = 0;
     }
 
     /**
@@ -545,6 +546,8 @@ public class PlayScreen extends Screen {
             }
 //		g2d.drawString("SCORE:", 5, 15);
             String scorestr = Integer.toString(score);
+            if (score < 100000)
+                scorestr = scorestr + " ";
             c.drawText(scorestr, scorertx-p.measureText(scorestr), statstextheight2, p);
             if (score > hiscore)
                 hiscore = score;
@@ -555,7 +558,7 @@ public class PlayScreen extends Screen {
 
 //            // onscreen dbg info
 //            c.drawText(info, 50, 150, p);
-            c.drawText("fps:"+fps, 50, 100, p);
+//            c.drawText("fps:"+fps, 50, 100, p);
 
             // draw fire buttons
             p.setARGB(255, 170, 0, 0);
@@ -816,15 +819,6 @@ public class PlayScreen extends Screen {
                         float effx = e.getX(i) - halfwidth;
                         float effy = e.getY(i) - halfheight;
 
-                        float xfact = -effy/halfheight;
-                        float yfact = effx/halfwidth;
-                        mVelocityTracker.computeCurrentVelocity(1000);
-                        float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
-                        float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
-                        double fact = (tvx*xfact + tvy*yfact)/(MAX_VEL/3);
-                        crawler.accel(fact);
-
-/*
                         // come up with magnitude of portion of movement vector in same direction
                         // as unit vector normal to position vector relative to center.
                         // damn, that was a lot of words.
@@ -849,7 +843,17 @@ public class PlayScreen extends Screen {
 //                                info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
 //                                        (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
                         }
+/*
+                        // alternative screen control - cheaper but feels more spastic
+                        float xfact = -effy/halfheight;
+                        float yfact = effx/halfwidth;
+                        mVelocityTracker.computeCurrentVelocity(1000);
+                        float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
+                        float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
+                        double fact = (tvx*xfact + tvy*yfact)/(MAX_VEL/4);
+                        crawler.accel(fact);
 */
+
                     }
                 }
                 break;

@@ -1,13 +1,18 @@
 wannabe-tempest for android
 ---------------
 
-on tablet, V screen doesn't draw correctly.  may be fixed, need to check
 
-text align: score, and high/lives spacing
-add extra life at 20000
-end of round bonuses
 
+---
+1.0.3:
+add an extra life every 20000
+add end of round bonuses
+add crossing-infinity level
 add ability to choose start level if unlocked
+add level color sequence red yellow cyan black green
+
+speedup per lev, xs
+
 
 possibly other levels?
 
@@ -15,7 +20,7 @@ possibly other levels?
 --sq
 --plus
 --pseudo inf
-plus cvd
+plus cvd in
 --triangle
 cloverthing
 --flat v
@@ -26,4 +31,80 @@ heart
 multistar
 soft W
 broken harp thing
-crossing inf
+? crossing inf
+
+Tempest level colour schemes: 
+
+*Levels 1-16: 
+
+Tunnel - blue 
+Player ship - yellow 
+SuperZapper - yellow 
+Flippers - red 
+Tankers - purple 
+Spikers/Spikes - green 
+Pulsars - N/A (these do not appear until the next colour scheme) 
+
+*Levels 17-32: 
+
+Tunnel - red 
+Player ship - green 
+SuperZapper - cyan 
+Flippers - purple 
+Tankers - blue 
+Spikers/Spikes - cyan 
+Pulsars - yellow 
+
+*Levels 33-48: 
+
+Tunnel - yellow 
+Player ship - blue 
+SuperZapper - blue 
+Flippers - green 
+Tankers - cyan 
+Spikers/Spikes - red 
+Pulsars - blue 
+
+*Levels 49-64: 
+
+Tunnel - cyan 
+Player ship - blue 
+SuperZapper - red 
+Flippers - green 
+Tankers - purple 
+Spikers/Spikes - red 
+Pulsars - yellow 
+
+*Levels 65-80: 
+
+Tunnel - black (invisible) 
+Player ship - yellow 
+SuperZapper - white 
+Flippers - red 
+Tankers - purple 
+Spikers/Spikes - green 
+Pulsars - cyan 
+
+*Levels 81-96: 
+
+Tunnel - green 
+Player ship - red 
+SuperZapper - purple 
+Flippers - yellow 
+Tankers - purple 
+Spikers/Spikes - blue 
+Pulsars - yellow 
+
+Levels 97 and up - Keeps colour scheme from Levels 81-96, with random shapes from Level 99 onward.
+
+
+
+PAST
+----
+for 1.0.2:
+* added U level
+* fix drawing of V level on tablet.
+* binocular level rendering fix
+* fix game restart bug.
+* fix text/font size: score, and high/lives spacing on some devices
+* spin control fix for some devices

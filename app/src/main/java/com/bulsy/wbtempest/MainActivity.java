@@ -23,6 +23,7 @@ import java.util.Map;
 public class MainActivity extends ActionBarActivity {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
+    private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
     int TS_NORMAL; // normal text size
     int TS_BIG; // large text size
     Screen entryScreen;
@@ -30,7 +31,7 @@ public class MainActivity extends ActionBarActivity {
     Screen currentScreen;
     FullScreenView mainView;
     Typeface gamefont;
-    float scalefactor; // scaling factor for current device screen, compared to expected/development screen
+    float sizescalefactor; // scaling factor for current device screen, compared to expected/development screen
     public SoundPool soundpool = null;
     Map<Sound, Integer> soundMap = null;
     DisplayMetrics metrics;
@@ -49,14 +50,14 @@ public class MainActivity extends ActionBarActivity {
             metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
             gamefont = Typeface.createFromAsset(getAssets(), "lt.ttf");
-            //scalefactor = (float)Math.pow(metrics.densityDpi / EXPECTED_DENSITY, 1.1);
-            scalefactor = (float)metrics.densityDpi / EXPECTED_DENSITY;
-            if (scalefactor > 1.5f)
-                scalefactor = 1.5f;
-            else if (scalefactor < 0.5f)
-                scalefactor = 0.5f;
-            TS_NORMAL = (int)(35 * scalefactor);
-            TS_BIG = (int)(70 * scalefactor);
+            sizescalefactor = (float)(metrics.widthPixels / EXPECTED_WIDTH_PIX);//*Math.pow(metrics.densityDpi / EXPECTED_DENSITY, 0.4));
+            Log.d(LOG_ID, "dpi:"+metrics.densityDpi+" width:"+metrics.widthPixels+" scalefact:"+ sizescalefactor);
+            if (sizescalefactor > 1.5f)
+                sizescalefactor = 1.5f;
+            else if (sizescalefactor < 0.5f)
+                sizescalefactor = 0.5f;
+            TS_NORMAL = (int)(38 * sizescalefactor);
+            TS_BIG = (int)(80 * sizescalefactor);
 
             // create screens
             entryScreen = new EntryScreen(this);

@@ -46,11 +46,11 @@ public class EntryScreen extends Screen {
 
         p.setTypeface(act.getGameFont());
         p.setColor(Color.GREEN);  // dark greenish
-        p.setTextSize(100);
+        p.setTextSize(act.TS_BIG * 1.5f);
         String txt = "WBT";
         c.drawText(txt, (v.getWidth()-p.measureText(txt))/2, height/3, p);
 
-        p.setTextSize(60);
+        p.setTextSize(act.TS_BIG);
         if (playBtnBounds == null) {
             // initialize button locations
             p.getTextBounds(playmsg, 0, playmsg.length() - 1, scaledDst);
@@ -70,7 +70,7 @@ public class EntryScreen extends Screen {
         c.drawText(exitmsg, exitBtnBounds.left, exitBtnBounds.bottom, p);
 
         // version line
-        p.setTextSize(30);
+        p.setTextSize(act.TS_NORMAL);
         String msg = "v"+ BuildConfig.VERSION_NAME;
 //        com.bulsy.wbtempest.BuildConfig.VERSION_NAME
         int xTextEnd = (int)(width*.99f);

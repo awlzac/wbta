@@ -16,43 +16,43 @@ ADDED from AndroidManifest.xml:1:1
 	android:installLocation
 		ADDED from AndroidManifest.xml:3:5
 application
-ADDED from AndroidManifest.xml:5:5
+ADDED from AndroidManifest.xml:6:5
 MERGED from com.android.support:appcompat-v7:21.0.2:16:5
 MERGED from com.android.support:support-v4:21.0.2:16:5
 	android:label
-		ADDED from AndroidManifest.xml:6:9
-	android:allowBackup
-		ADDED from AndroidManifest.xml:5:18
-	android:icon
 		ADDED from AndroidManifest.xml:7:9
-	android:theme
-		ADDED from AndroidManifest.xml:9:9
-	android:hardwareAccelerated
+	android:allowBackup
+		ADDED from AndroidManifest.xml:6:18
+	android:icon
 		ADDED from AndroidManifest.xml:8:9
+	android:theme
+		ADDED from AndroidManifest.xml:10:9
+	android:hardwareAccelerated
+		ADDED from AndroidManifest.xml:9:9
 activity#com.bulsy.wbtempest.MainActivity
-ADDED from AndroidManifest.xml:10:9
+ADDED from AndroidManifest.xml:11:9
 	android:screenOrientation
-		ADDED from AndroidManifest.xml:13:13
-	android:label
-		ADDED from AndroidManifest.xml:12:13
-	android:configChanges
 		ADDED from AndroidManifest.xml:14:13
+	android:label
+		ADDED from AndroidManifest.xml:13:13
+	android:configChanges
+		ADDED from AndroidManifest.xml:15:13
 	android:name
-		ADDED from AndroidManifest.xml:11:13
+		ADDED from AndroidManifest.xml:12:13
 intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:15:13
+ADDED from AndroidManifest.xml:16:13
 action#android.intent.action.MAIN
-ADDED from AndroidManifest.xml:16:17
-	android:name
-		ADDED from AndroidManifest.xml:16:25
-category#android.intent.category.LAUNCHER
 ADDED from AndroidManifest.xml:17:17
 	android:name
-		ADDED from AndroidManifest.xml:17:27
-uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from AndroidManifest.xml:21:5
+		ADDED from AndroidManifest.xml:17:25
+category#android.intent.category.LAUNCHER
+ADDED from AndroidManifest.xml:18:17
 	android:name
-		ADDED from AndroidManifest.xml:21:22
+		ADDED from AndroidManifest.xml:18:27
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from AndroidManifest.xml:22:5
+	android:name
+		ADDED from AndroidManifest.xml:22:22
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:21.0.2:15:5
