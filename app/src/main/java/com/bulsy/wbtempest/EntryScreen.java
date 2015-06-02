@@ -50,6 +50,9 @@ public class EntryScreen extends Screen {
         String txt = "WBT";
         c.drawText(txt, (v.getWidth()-p.measureText(txt))/2, height/3, p);
 
+        // screen chooser
+
+
         p.setTextSize(act.TS_BIG);
         if (playBtnBounds == null) {
             // initialize button locations

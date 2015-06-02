@@ -30,7 +30,7 @@ public class Ex {
 	private static long INIT_JUMPINTERVAL = (long)(PlayScreen.ONESEC_NANOS*2/3);
     private static float BOARD_TOP_SPEEDUP_FACTOR = 0.7f;
 	private static long JUMPINTERVAL_FLYING = (long)(PlayScreen.ONESEC_NANOS/15);  //while ex is still flying in the center
-	private static double INIT_SPEED = 70;
+	private static double INIT_SPEED = 75;
     private int col;
     private boolean isPod = false;
     private double z = Board.BOARD_DEPTH;

@@ -11,4 +11,5 @@
     <string name="exit">TOUCH TO EXIT</string>
     <string name="play">PLAY</string>
     <string name="exitapp">EXIT</string>
+    <string name="lvlclrbonus">LEVEL CLEAR BONUS</string>
 </resources>

@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        //screennum=3;
+        screennum=7;
 
         switch (screennum) {
             case 0:	// circle
@@ -339,12 +339,12 @@ public class Board {
                 rad_dist = (float) (Math.PI); // half circ
                 step = rad_dist/(ncols);
                 zpull_x = v.getWidth()/2;
-                zpull_y = v.getHeight()*4/7;
+                zpull_y = v.getHeight()*17/28;
                 int xradius=0, orgy=0, straightstepdist=0;
                 for (double rads=0; rads < Math.PI+step/2; rads+=step)
                 {
                     x = cx - (int)(Math.cos(rads) * radius * .95);
-                    y = cy * 11/5 + (int)(Math.sin(rads) * radius);
+                    y = cy * 12/10 + (int)(Math.sin(rads) * radius);
                     if (firsttime){
                         firsttime = false;
                         xradius = cx - x;
@@ -389,10 +389,38 @@ public class Board {
         return columns;
     }
 
-    public int getLevelColor(){
-        if (levnum > NUMSCREENS)
-            return Color.RED;
-        return Color.BLUE;
+    public int getBoardColor(){
+        switch (levnum/NUMSCREENS) {
+            case 0:
+                return Color.BLUE;
+            case 1:
+                return Color.RED;
+            case 2:
+                return Color.YELLOW;
+            case 3:
+                return Color.CYAN;
+            case 4:
+                return Color.BLACK;
+            default:
+                return Color.GREEN;
+        }
+    }
+
+    public int getCrawlerColor(){
+        switch (levnum/NUMSCREENS) {
+            case 0:
+                return Color.YELLOW;
+            case 1:
+                return Color.GREEN;
+            case 2:
+                return Color.BLUE;
+            case 3:
+                return Color.BLUE;
+            case 4:
+                return Color.YELLOW;
+            default:
+                return Color.RED;
+        }
     }
 
     //public int getZPull_X() {
@@ -458,7 +486,7 @@ public class Board {
     	int oldfntx = 0, oldfnty=0, oldbackx=0, oldbacky=0;
         int idx=0;
         int playerColCoord2 = (playerCol + 1);// % columns.size();
-    	int boardColor = getLevelColor();
+    	int boardColor = getBoardColor();
     	if (isSuperzapping) {
     		boardColor = Color.rgb(r.nextInt(255),r.nextInt(255),r.nextInt(255));
     	}
@@ -502,7 +530,7 @@ public class Board {
     		oldbacky=backCoords[1];
     	}
         c.drawLines(boardLinePts, 0, idx, paint);
-        paint.setColor(Color.YELLOW);
+        paint.setColor(getCrawlerColor());
         c.drawLines(pcLinePts, paint);
     }
 }

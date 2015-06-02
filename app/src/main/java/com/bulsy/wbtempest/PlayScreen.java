@@ -39,6 +39,8 @@ public class PlayScreen extends Screen {
     private static final int NUM_STARS = 100; // number of stars when entering a level
     private static final int MAX_VEL = 2500; // spin-controlling at this pace is "fast"
     private static final int INIT_LEVELPREP_POV = Board.BOARD_DEPTH * 2;  // start level-intro zoom from this distance
+    private static final int PER_LEV_CLEAR_BONUS = 500;  // level clear bonus is this *level
+    private static final int EXTRA_LIFE_SCORE = 20000;  // score at which player gets an extra life
 
     private Crawler crawler;
     private ArrayList<Ex> exes;
@@ -77,6 +79,8 @@ public class PlayScreen extends Screen {
     private int rhstextoffset;
     private int statstextheight, statstextheight2;
     private String info= "";
+    private String bonustxt;
+    private int nextLife = 0;
     private int levchgStreamID = 0;
     boolean hasSpike[] = new boolean[Board.MAX_COLS]; // most columns any screen will have
 
@@ -96,6 +100,7 @@ public class PlayScreen extends Screen {
     private String lblAvoidSpikes;
     private String lblExit;
     private String lblGameOver;
+    private String lblLevelClearBonus;
 
     public PlayScreen(MainActivity act) {
         this.act = act;
@@ -122,6 +127,7 @@ public class PlayScreen extends Screen {
         lblAvoidSpikes = act.getResources().getString(R.string.avoidspikes);
         lblGameOver = act.getResources().getString(R.string.gameover);
         lblExit = act.getResources().getString(R.string.exit);
+        lblLevelClearBonus = act.getResources().getString(R.string.lvlclrbonus);
 
         startGame();
     }
@@ -137,6 +143,7 @@ public class PlayScreen extends Screen {
         levelnum = 1;
         gamestarting = true;
         frtime = 0;
+        nextLife = EXTRA_LIFE_SCORE;
     }
 
     /**
@@ -322,6 +329,8 @@ public class PlayScreen extends Screen {
 
                 if (boardpov > board.BOARD_DEPTH * 5/4)
                 {
+                    score += levelnum * PER_LEV_CLEAR_BONUS;
+                    bonustxt = lblLevelClearBonus + " " + levelnum*PER_LEV_CLEAR_BONUS;
                     levelnum++;
                     initLevel(v);
                     boardpov = -INIT_LEVELPREP_POV;
@@ -461,9 +470,10 @@ public class PlayScreen extends Screen {
 
                 // draw crawler
                 if (crawler.isVisible()){
-                    color = Color.YELLOW;
                     if (frtime < deathPauseTime)
                         color = Color.rgb(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+                    else
+                        color = board.getCrawlerColor();
                     ZMagic.drawObject(c, color, crawler.getCoords(), board, boardpov, crawlerzoffset);
                 }
 
@@ -545,6 +555,11 @@ public class PlayScreen extends Screen {
                 scorertx = p.measureText("100000");  // right align of score should just be enough for 6 digits
             }
 //		g2d.drawString("SCORE:", 5, 15);
+            if (score >= nextLife) {
+                lives++;
+                nextLife += EXTRA_LIFE_SCORE;
+                act.playSound(Sound.EXLIFE);  // need a real sound here haha
+            }
             String scorestr = Integer.toString(score);
             if (score < 100000)
                 scorestr = scorestr + " ";
@@ -579,6 +594,7 @@ public class PlayScreen extends Screen {
             if (levelprep){
                 p.setTextSize(act.TS_NORMAL);
                 p.setColor(Color.BLUE);
+                drawCenteredText(c, bonustxt, height * 1/3, p, 0);
                 drawCenteredText(c, lblZapRechg, height * 2/3, p, 0);
             }
 

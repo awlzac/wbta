@@ -82,6 +82,8 @@ public class MainActivity extends ActionBarActivity {
             soundMap.put(Sound.ENEMYDEATH, soundpool.load(descriptor, 1));
             descriptor = getAssets().openFd("levchg1.mp3");
             soundMap.put(Sound.LEVCHG, soundpool.load(descriptor, 1));
+            descriptor = getAssets().openFd("exlife.mp3");
+            soundMap.put(Sound.EXLIFE, soundpool.load(descriptor, 1));
 
         } catch (Exception e) {
             // panic, crash, fine -- but let me know what happened.

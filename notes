@@ -5,13 +5,16 @@ wannabe-tempest for android
 
 ---
 1.0.3:
-add an extra life every 20000
+U level fix
+add level color sequence for advanced levels
 add end of round bonuses
+speedup per lev, xs
+add an extra life every 20000
+
+
+1.0.4:
 add crossing-infinity level
 add ability to choose start level if unlocked
-add level color sequence red yellow cyan black green
-
-speedup per lev, xs
 
 
 possibly other levels?
