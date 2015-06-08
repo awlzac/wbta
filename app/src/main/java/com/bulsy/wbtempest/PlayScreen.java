@@ -39,7 +39,7 @@ public class PlayScreen extends Screen {
     private static final int NUM_STARS = 100; // number of stars when entering a level
     private static final int MAX_VEL = 2500; // spin-controlling at this pace is "fast"
     private static final int INIT_LEVELPREP_POV = Board.BOARD_DEPTH * 2;  // start level-intro zoom from this distance
-    private static final int PER_LEV_CLEAR_BONUS = 500;  // level clear bonus is this *level
+    private static final int PER_LEV_CLEAR_BONUS = 100;  // level clear bonus is this *level
     private static final int EXTRA_LIFE_SCORE = 20000;  // score at which player gets an extra life
 
     private Crawler crawler;
@@ -507,12 +507,14 @@ public class PlayScreen extends Screen {
                 }
 
                 // draw exes
+                int podc = board.getExPodColor();
+                int exc = board.getExColor();
                 for (Ex ex : exes) {
                     if (ex.isVisible())
                         if (ex.isPod())
-                            ZMagic.drawObject(c, Color.MAGENTA, ex.getCoords(board), board, boardpov, crawlerzoffset);
+                            ZMagic.drawObject(c, podc, ex.getCoords(board), board, boardpov, crawlerzoffset);
                         else
-                            ZMagic.drawObject(c, Color.RED, ex.getCoords(board), board, boardpov, crawlerzoffset);
+                            ZMagic.drawObject(c, exc, ex.getCoords(board), board, boardpov, crawlerzoffset);
                     else {
                         // not visible but still in list means just killed
                         ZMagic.drawObject(c, Color.WHITE, ex.getDeathCoords(board), board, boardpov);
@@ -532,15 +534,16 @@ public class PlayScreen extends Screen {
                 }
 
                 // draw spikes and spinnythings
+                int spikecol = board.getSpikeColor();
                 for (Spike s : spikes) {
                     if (s.isVisible()) {
                         List<int[]> spikeCoords = s.getCoords(board);
-                        ZMagic.drawObject(c, Color.GREEN, spikeCoords, board, boardpov);
+                        ZMagic.drawObject(c, spikecol, spikeCoords, board, boardpov);
                         spikeCoords.set(0, spikeCoords.get(1)); // add white dot at end
                         ZMagic.drawObject(c, Color.WHITE, spikeCoords, board, boardpov);
                         if (s.isSpinnerVisible()) {
                             List<int[]> spinCoords = s.getSpinnerCoords(board);
-                            ZMagic.drawObject(c, Color.GREEN, spinCoords, board, boardpov);
+                            ZMagic.drawObject(c, spikecol, spinCoords, board, boardpov);
                         }
                     }
                 }

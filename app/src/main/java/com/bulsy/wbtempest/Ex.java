@@ -20,7 +20,7 @@ public class Ex {
     static int HEIGHT = 20;
     static int SCOREVAL=150;
     static int PODSCOREVAL=50;
-    static int PODSIZE = 35;
+    static int PODSIZE = 38;
     private static int EXHEIGHT_H = HEIGHT/2; // half the height of an Ex
     private static Random rnd = new Random(new java.util.Date().getTime());
     

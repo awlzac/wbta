@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        screennum=7;
+        //screennum=7;
 
         switch (screennum) {
             case 0:	// circle
@@ -390,7 +390,7 @@ public class Board {
     }
 
     public int getBoardColor(){
-        switch (levnum/NUMSCREENS) {
+        switch ((levnum-1)/NUMSCREENS) {
             case 0:
                 return Color.BLUE;
             case 1:
@@ -407,7 +407,7 @@ public class Board {
     }
 
     public int getCrawlerColor(){
-        switch (levnum/NUMSCREENS) {
+        switch ((levnum-1)/NUMSCREENS) {
             case 0:
                 return Color.YELLOW;
             case 1:
@@ -420,6 +420,57 @@ public class Board {
                 return Color.YELLOW;
             default:
                 return Color.RED;
+        }
+    }
+
+    public int getExColor(){
+        switch ((levnum-1)/NUMSCREENS) {
+            case 0:
+                return Color.RED;
+            case 1:
+                return Color.MAGENTA;
+            case 2:
+                return Color.GREEN;
+            case 3:
+                return Color.GREEN;
+            case 4:
+                return Color.RED;
+            default:
+                return Color.YELLOW;
+        }
+    }
+
+    public int getExPodColor(){
+        switch ((levnum-1)/NUMSCREENS) {
+            case 0:
+                return Color.MAGENTA;
+            case 1:
+                return Color.BLUE;
+            case 2:
+                return Color.CYAN;
+            case 3:
+                return Color.MAGENTA;
+            case 4:
+                return Color.MAGENTA;
+            default:
+                return Color.MAGENTA;
+        }
+    }
+
+    public int getSpikeColor(){
+        switch ((levnum-1)/NUMSCREENS) {
+            case 0:
+                return Color.GREEN;
+            case 1:
+                return Color.CYAN;
+            case 2:
+                return Color.RED;
+            case 3:
+                return Color.RED;
+            case 4:
+                return Color.GREEN;
+            default:
+                return Color.BLUE;
         }
     }
 

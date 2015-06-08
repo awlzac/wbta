@@ -3,16 +3,7 @@ wannabe-tempest for android
 
 
 
----
-1.0.3:
-U level fix
-add level color sequence for advanced levels
-add end of round bonuses
-speedup per lev, xs
-add an extra life every 20000
-
-
-1.0.4:
+1.0.5:
 add crossing-infinity level
 add ability to choose start level if unlocked
 
@@ -111,3 +102,17 @@ for 1.0.2:
 * fix game restart bug.
 * fix text/font size: score, and high/lives spacing on some devices
 * spin control fix for some devices
+
+---
+1.0.3:
+U level fix
+add level color sequence for advanced levels
+add end of round bonuses
+speedup per lev, xs
+add an extra life every 20000
+
+
+1.0.4/a:
+U repeating fix
+end round bonuses cut down
+adjusted level colors for advanced levels
