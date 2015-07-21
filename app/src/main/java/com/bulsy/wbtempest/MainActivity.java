@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +26,8 @@ public class MainActivity extends ActionBarActivity {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
+    static final String STARTLEVEL_FILENAME = "wbt.lev";
+    static final int LOW_LEVEL_THRESHOLD = 6; // once unlocked, start level will always be offered up to this level
     int TS_NORMAL; // normal text size
     int TS_BIG; // large text size
     Screen entryScreen;
@@ -35,6 +39,8 @@ public class MainActivity extends ActionBarActivity {
     public SoundPool soundpool = null;
     Map<Sound, Integer> soundMap = null;
     DisplayMetrics metrics;
+    int maxStartLevel = 1;
+    String lblSelectStartScr;
 
     /**
      * Initialize the activity.
@@ -58,6 +64,18 @@ public class MainActivity extends ActionBarActivity {
                 sizescalefactor = 0.5f;
             TS_NORMAL = (int)(38 * sizescalefactor);
             TS_BIG = (int)(80 * sizescalefactor);
+
+            // get max start level
+            BufferedReader f = null;
+            try {
+                f = new BufferedReader(new FileReader(getFilesDir() + STARTLEVEL_FILENAME));
+                maxStartLevel = Integer.parseInt(f.readLine());
+            } catch (Exception e) {
+                Log.d(MainActivity.LOG_ID, "ReadMaxStartlevel", e);
+            } finally {
+                if (f != null)
+                    f.close();
+            }
 
             // create screens
             entryScreen = new EntryScreen(this);
@@ -150,8 +168,8 @@ public class MainActivity extends ActionBarActivity {
     /**
      * Start a new game.
      */
-    public void startGame() {
-        this.playScreen.startGame();
+    public void startGame(int startlevel) {
+        this.playScreen.startGame(startlevel);
         currentScreen = this.playScreen;
     }
 

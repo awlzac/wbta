@@ -8,6 +8,10 @@ add crossing-infinity level
 add ability to choose start level if unlocked
 
 
+jul 20 - started level chooser, just not into it. need to get something to scroll through them.  gridview?
+at moment: shows the last level completed, and tries to adjust it on end of game.  will need to add scrolling gridview before next u/l tho.
+
+
 possibly other levels?
 
 --circle
@@ -116,3 +120,4 @@ add an extra life every 20000
 U repeating fix
 end round bonuses cut down
 adjusted level colors for advanced levels
+

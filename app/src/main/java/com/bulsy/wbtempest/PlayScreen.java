@@ -101,6 +101,7 @@ public class PlayScreen extends Screen {
     private String lblExit;
     private String lblGameOver;
     private String lblLevelClearBonus;
+    String lblSelectStartScr;
 
     public PlayScreen(MainActivity act) {
         this.act = act;
@@ -128,19 +129,18 @@ public class PlayScreen extends Screen {
         lblGameOver = act.getResources().getString(R.string.gameover);
         lblExit = act.getResources().getString(R.string.exit);
         lblLevelClearBonus = act.getResources().getString(R.string.lvlclrbonus);
-
-        startGame();
+        act.lblSelectStartScr = act.getResources().getString(R.string.selectstartscr);
     }
 
     /**
      * Initialize the game.
      */
-    public void startGame()
+    public void startGame(int startlevel)
     {
         lives=START_LIVES;
         gameover=false;
         score = 0;
-        levelnum = 1;
+        levelnum = startlevel;
         gamestarting = true;
         frtime = 0;
         nextLife = EXTRA_LIFE_SCORE;
@@ -150,7 +150,7 @@ public class PlayScreen extends Screen {
      * initialize a level for play
      */
     private void initLevel(View v){
-        board.init(v, levelnum);
+        board.init(v.getWidth(), v.getHeight(), levelnum);
         crawler.init(board, act);
         exes.clear();
         int ncols = board.getColumns().size();
@@ -218,6 +218,22 @@ public class PlayScreen extends Screen {
         clearboard = true;
         deathPauseTime = System.nanoTime() + DEATH_PAUSE_NANOS;
         act.playSound(Sound.CRAWLERDEATH);
+    }
+
+    private void writeDataFiles() {
+        try {
+            BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
+            f.write(Integer.toString(hiscore)+"\n");
+            f.close();
+            if (levelnum > MainActivity.LOW_LEVEL_THRESHOLD || levelnum > act.maxStartLevel) {
+                act.maxStartLevel = levelnum - 1;
+                f = new BufferedWriter(new FileWriter(act.getFilesDir() + MainActivity.STARTLEVEL_FILENAME));
+                f.write(Integer.toString(act.maxStartLevel) + "\n");
+                f.close();
+            }
+        } catch (Exception e) { // if we can't write the hi score or start level file...oh well.
+            Log.d(MainActivity.LOG_ID, "WriteDataFiles", e);
+        }
     }
 
     @Override
@@ -349,8 +365,10 @@ public class PlayScreen extends Screen {
                     // advance everything along z away from player.
                     if (boardpov > -board.BOARD_DEPTH * 5)
                         boardpov -= elapsedTime * GAME_OVER_BOARDSPEED;
-                    else
+                    else {
                         gameover = true;
+                        writeDataFiles();
+                    }
                 }
             }
             // ...otherwise, we died and are waiting for death pause to pass
@@ -484,7 +502,7 @@ public class PlayScreen extends Screen {
                     for (int[] s : starList) {
                         int zdist = s[2] - boardpov;
                         xycoords = ZMagic.renderFromZ(s[0], s[1], zdist, board, xycoords);
-                        if (levelnum > Board.NUMSCREENS)
+                        if (levelnum >= Board.NUMSCREENS) // sparkle them as of last blue level
                             starpaint.setARGB(255, r.nextInt(255),r.nextInt(255),r.nextInt(255));
                         if (zdist < 200)
                             starpaint.setStrokeWidth(5);
@@ -613,14 +631,6 @@ public class PlayScreen extends Screen {
                 drawCenteredText(c, lblGameOver, v.getHeight() / 2, p, 0);
                 p.setTextSize(act.TS_NORMAL);
                 drawCenteredText(c, lblExit, v.getHeight() * 3/4, p, 0);
-
-                try {
-                    BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
-                    f.write(Integer.toString(hiscore)+"\n");
-                    f.close();
-                } catch (Exception e) { // if we can't write the hi score file...oh well.
-                    Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
-                }
             }
         } catch (Exception e) {
             Log.d(act.LOG_ID, "draw", e);

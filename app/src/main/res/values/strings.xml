@@ -12,4 +12,5 @@
     <string name="play">PLAY</string>
     <string name="exitapp">EXIT</string>
     <string name="lvlclrbonus">LEVEL CLEAR BONUS</string>
+    <string name="selectstartscr">SELECT START LEVEL</string>
 </resources>

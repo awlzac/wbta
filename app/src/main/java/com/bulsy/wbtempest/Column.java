@@ -25,4 +25,8 @@ public class Column {
 	public int[] getFrontPoint2(){
 		return point2;
 	}
+
+	public void setFrontPoint2(int[] point) {
+		point2 = point;
+	}
 }
