@@ -20,7 +20,7 @@ public class Board {
     static final int FIRST_SPIKE_LEVEL = 4;  // level at which we first see spikes
     static final int MAX_COLS = 40; // max conceivable number of columns
     private static final int BASE_EX_FIRE_BPS = 2000;  // bps chance per sec that an ex fires at player
-    public static final int NUMSCREENS = 9;  // number of different screen layouts
+    public static final int NUMSCREENS = 10;  // number of different screen layouts
 
     private int levnum;
     private int exesct;
@@ -67,7 +67,7 @@ public class Board {
 
         // if we run out of screens....cycle
         int screennum = (levnum-1) % NUMSCREENS;
-        //screennum=7;
+        //screennum=9;
 
         switch (screennum) {
             case 0:	// circle
@@ -390,6 +390,66 @@ public class Board {
 
                 }
                 break;
+
+            case 9: // crossing infinity
+                ncols = 10;
+                zpull_y = cy*38/40;
+                continuous = true;
+                rad_dist = (float) (Math.PI * 2);
+                step = rad_dist/(ncols);
+                origx=0;
+                orgy=0;
+                cxc = (int)((float)cx * .44);
+                radius = (int)((cx - cxc)*0.88f);
+                firsttime = true;
+                for (float rads=-1.5f*step; rads < rad_dist-step*3.5; rads+=step)
+                {
+                    x = cxc - (int)(Math.sin(rads) * radius * .90);
+                    y = cy - (int)(Math.cos(rads) * radius);
+//                    if (i == 0 || i == 7){
+//                        y = cy - (int)(Math.cos(rads) * radius * 1.3);
+//                        x = cxc - (int)(Math.sin(rads) * radius * .85);
+//                    }
+                    if (firsttime){
+                        origx = x;
+                        orgy = y;
+                        firsttime = false;
+                    }
+                    else {
+                        Column col = new Column(oldx, oldy, x, y);
+                        columns.add(col);
+                    }
+                    oldx = x;
+                    oldy = y;
+                }
+                x = cx;
+                y = cy;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                oldy = y;
+
+                cxc = (int)((float)cx * 1.56);
+                for (float rads=+1.5f*step; rads > -rad_dist+3.5*step; rads-=step)
+                {
+                    x = cxc - (int)(Math.sin(rads) * radius * .90);
+                    y = cy - (int)(Math.cos(rads) * radius);
+//                    if (i == 0 || i == 7){
+//                        y = cy - (int)(Math.cos(rads) * radius * 1.3);
+//                        x = cxc - (int)(Math.sin(rads) * radius * .85);
+//                    }
+                    Column col = new Column(oldx, oldy, x, y);
+                    columns.add(col);
+                    oldx = x;
+                    oldy = y;
+                }
+                x = cx;
+                y = cy;
+                columns.add(new Column(oldx, oldy, x, y));
+                oldx = x;
+                oldy = y;
+                columns.add(new Column(oldx, oldy, origx, orgy));
+                break;
+
         }
     }
 

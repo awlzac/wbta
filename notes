@@ -1,103 +1,34 @@
 wannabe-tempest for android
 ---------------
 
+todo
+----
+cleanup/gc/reuse/etc
+adjust sensitivity on controls -- maybe give option to have user choose?
 
 
-1.0.5:
-add crossing-infinity level
-add ability to choose start level if unlocked
 
-
-jul 20 - started level chooser, just not into it. need to get something to scroll through them.  gridview?
-at moment: shows the last level completed, and tries to adjust it on end of game.  will need to add scrolling gridview before next u/l tho.
-
-
-possibly other levels?
-
---circle
---sq
---plus
---pseudo inf
-plus cvd in
---triangle
+considered levels
+--------
+* circle
+* sq
+* plus
+* pseudo inf/binocular
+plus curved in
+* triangle
 cloverthing
---flat v
---jagged v
--- U
---straight
+* flat v
+* jagged v
+* U
+* straight
 heart
 multistar
 soft W
 broken harp thing
-? crossing inf
-
-Tempest level colour schemes: 
-
-*Levels 1-16: 
-
-Tunnel - blue 
-Player ship - yellow 
-SuperZapper - yellow 
-Flippers - red 
-Tankers - purple 
-Spikers/Spikes - green 
-Pulsars - N/A (these do not appear until the next colour scheme) 
-
-*Levels 17-32: 
-
-Tunnel - red 
-Player ship - green 
-SuperZapper - cyan 
-Flippers - purple 
-Tankers - blue 
-Spikers/Spikes - cyan 
-Pulsars - yellow 
-
-*Levels 33-48: 
-
-Tunnel - yellow 
-Player ship - blue 
-SuperZapper - blue 
-Flippers - green 
-Tankers - cyan 
-Spikers/Spikes - red 
-Pulsars - blue 
-
-*Levels 49-64: 
-
-Tunnel - cyan 
-Player ship - blue 
-SuperZapper - red 
-Flippers - green 
-Tankers - purple 
-Spikers/Spikes - red 
-Pulsars - yellow 
-
-*Levels 65-80: 
-
-Tunnel - black (invisible) 
-Player ship - yellow 
-SuperZapper - white 
-Flippers - red 
-Tankers - purple 
-Spikers/Spikes - green 
-Pulsars - cyan 
-
-*Levels 81-96: 
-
-Tunnel - green 
-Player ship - red 
-SuperZapper - purple 
-Flippers - yellow 
-Tankers - purple 
-Spikers/Spikes - blue 
-Pulsars - yellow 
-
-Levels 97 and up - Keeps colour scheme from Levels 81-96, with random shapes from Level 99 onward.
+* crossing inf
 
 
-
-PAST
+PAST release notes
 ----
 for 1.0.2:
 * added U level
@@ -115,9 +46,14 @@ add end of round bonuses
 speedup per lev, xs
 add an extra life every 20000
 
-
 1.0.4/a:
 U repeating fix
 end round bonuses cut down
 adjusted level colors for advanced levels
+
+1.0.5:
+added ability to choose start level, from level 1 up to one level BEFORE the last game ended.
+added crossing-infinity level
+
+
 
