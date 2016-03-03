@@ -24,3 +24,5 @@ circular touch motion on the game board controls your crawler, and "fire" and "z
 built using android studio.
 
 this was ported to android (and expanded) from <a href="https://github.com/awlzac/wbt">wbtempest, (standard java)</a>.
+
+available for download/play at <a href="https://play.google.com/store/apps/details?id=com.bulsy.wbtempest">google play</a>.
